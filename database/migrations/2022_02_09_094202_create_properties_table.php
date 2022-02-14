@@ -16,8 +16,6 @@ class CreatePropertiesTable extends Migration
         Schema::create('properties', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->json('image')->nullable();
-            $table->json('filename')->nullable();
             $table->text('description');
             $table->enum('status', ['active', 'inactive'])->default('active');
             $table->timestamps();

@@ -29,24 +29,27 @@ class AuthController extends Controller
      */
     public function register(Request $request)
     {
-        // dd($request->all());
+        return (request()->all());
         $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255',
+            'fname' => 'required|string|max:255',
+            'lname' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|confirmed|string|min:8',
-            ]);
+        ]);
    
-           if ($validator->fails()) {
+            if ($validator->fails()) {
               return response()->json($validator->errors());
-            } 
-            User::create([
-                'name' => $request->name,
-                'email' => $request->email,
-                'password' => Hash::make($request->password),
-            ]);
+            }
+            $user = new User;
+            $user->fname = $request->fname;
+            $user->lname = $request->lname;
+            $user->email = $request->email;
+            $user->password = Hash::make($request->password);
+            $user->save();
+         
             $credentials = request(['email', 'password']);
 
-            if (! $token = auth()->attempt($credentials)) {
+            if (!$token = auth()->attempt($credentials)) {
                 return response()->json(['error' => 'Unauthorized'], 401);
             }
 

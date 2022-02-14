@@ -20,8 +20,15 @@ class PropertyController extends Controller
      */
     public function index()
     {
-        $all_property = Property::select('*')->paginate(40);
-        return $this->successResponse(__('property.view'), $all_property);
+        $all_property = Property::select('*')->orderBy('created_at','desc');
+        if(request()->has('not_paginated') && request()->not_paginated) {
+            if(request()->has('active_only') && request()->active_only) {
+                return $this->successResponse(__('property.view'), $all_property->where('status', 'active')->orderBy('created_at', 'desc')->get());
+
+            }
+            return $this->successResponse(__('property.view'), $all_property->get());
+        }
+        return $this->successResponse(__('property.view'), $all_property->paginate(10));
 
     }
 
@@ -45,7 +52,6 @@ class PropertyController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'name' => 'required|string',
-            'image' => 'required',
             'description' => 'required|string'
         ]);
 
@@ -58,32 +64,10 @@ class PropertyController extends Controller
         $property->description = request()->description;
         
         if($property->save()) {
-            $images = [];
-            $filenames = [];
-            foreach (request()->file('image') as  $value) {
-                $image = time().'_'.$value->getClientOriginalName();
-                $path = $value->storeAs('public/images', $image);
- 
-                $path = url('/') . '/storage/images/' . $image;
- 
-                $images[] = ['image' => $path];
-                $filenames[] = ['filename' => $image];
- 
- 
-            };
-
-            $add_property_img = Property::where('id', $property->id)->update([
-                'image' => json_encode($images),
-                'filename' => json_encode($filenames)
-            ]);
-
-            if($add_property_img) {
-                return $this->successResponse(__('property.created'));
-                
-            }
-            return $this->failureResponse(__('property.error'),null,500);
-
+            return $this->successResponse(__('property.created'));
+            
         }
+        return $this->failureResponse(__('property.error'),null,500);
 
 
     }
@@ -101,6 +85,22 @@ class PropertyController extends Controller
 
     }
 
+      /**
+     * Update status of the specified resource in storage.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+
+     public function toggle_status($id)
+     {
+         $property=Property::where('id', $id)->update([
+             'status' => request()->status
+         ]);
+
+         return $this->successResponse(__('property.updated'), $property); 
+     }
+
     /**
      * Show the form for editing the specified resource.
      *
@@ -109,7 +109,7 @@ class PropertyController extends Controller
      */
     public function edit($id)
     {
-        //
+        
     }
 
     /**
@@ -154,16 +154,11 @@ class PropertyController extends Controller
         if(!$delete_property)return $this->failureResponse(__('property.notfound'));
 
         try {
-        
-            foreach (json_decode($delete_property->filename) as $value) {
-                # code...
-                if (Storage::exists("app/public/images/".$value->filename)) {
-                    # code...
-                    unlink(storage_path("app/public/images/".$value->filename));
-                }
-            }
-            $delete_property->delete();
+           if($delete_property->delete()) {
             return $this->successResponse(__('property.delete'));
+           };
+           return $this->failureResponse(__('property.error'),null);
+
 
         } catch (\Throwable $th) {
             return $this->failureResponse(__('property.error'),null, 500);
