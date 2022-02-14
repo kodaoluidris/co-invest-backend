@@ -21,6 +21,7 @@ class MainPropertyController extends Controller
     {
         $data = MainProperty::join('property_types as pt', 'pt.id', 'main_properties.property_type_id')
         ->select('main_properties.*', 'pt.name as pt_name', 'pt.description as pt_desc', 'pt.id as pt_id')
+        ->orderBy('main_properties.created_at','desc')
         ->paginate(40);
         foreach ($data as  $value) {
             $value->image = json_decode($value->image);

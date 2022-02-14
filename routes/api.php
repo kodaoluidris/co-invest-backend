@@ -61,7 +61,7 @@ Route::group(['middleware' => 'api'], function ($router) {
     Route::prefix('main_properties')->name('main_properties.')->group(function() {
         Route::post('/all', [MainPropertyController::class, 'index'])->name('index');
         Route::get('/{id}', [MainPropertyController::class, 'show'])->name('show');
-        Route::put('/toggle-status/{id}', [PropertyTypesController::class, 'toggle_status'])->name('toggle_status');
+        Route::put('/toggle-status/{id}', [MainPropertyController::class, 'toggle_status'])->name('toggle_status');
         Route::post('/', [MainPropertyController::class, 'store'])->name('store');
         Route::post('/update/{id}', [MainPropertyController::class, 'update'])->name('update');
         Route::delete('/{id}', [MainPropertyController::class, 'destroy'])->name('destroy');
