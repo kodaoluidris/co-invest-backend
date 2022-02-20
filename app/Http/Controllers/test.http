@@ -1,0 +1,6 @@
+POST HTTP://co_invest_backend.test/api/properties/
+content-type: application/json
+
+{
+    "name": "Big property"
+}
