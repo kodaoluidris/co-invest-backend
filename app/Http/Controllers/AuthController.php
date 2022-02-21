@@ -43,6 +43,7 @@ class AuthController extends Controller
             $user->fname = $request->fname;
             $user->lname = $request->lname;
             $user->email = $request->email;
+            $user->user_type_id = 3;
             $user->password = Hash::make($request->password);
             $user->save();
 
@@ -78,6 +79,24 @@ class AuthController extends Controller
     public function me()
     {
         return response()->json(auth()->user());
+    }
+
+    public function complete_profile() 
+    {
+
+        $update_user = User::where('id', request()->id)->update([
+            'fname' => request()->fname,
+            'lname' => request()->lname,
+            'mname' => request()->mname,
+            'gender' => request()->gender,
+            'username' => request()->username,
+            'email' => request()->email,
+            'phone' => request()->phone,
+            'country' => request()->country
+        ]);
+
+        if($update_user) return response()->json(['message' => 'Profile updated successfully'], 200);
+        return response()->json(['message' => 'Unable tp update profile, please try again later'], 500);
     }
 
     /**

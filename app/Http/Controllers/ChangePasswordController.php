@@ -5,10 +5,13 @@ use App\Http\Requests\UpdatePasswordRequest;
 use Symfony\Component\HttpFoundation\Response;
 use Illuminate\Support\Facades\DB;
 use App\Models\User;
+
 class ChangePasswordController extends Controller {
+
     public function passwordResetProcess(UpdatePasswordRequest $request){
       return $this->updatePasswordRow($request)->count() > 0 ? $this->resetPassword($request) : $this->tokenNotFoundError();
     }
+    
     // Verify if token is valid
     private function updatePasswordRow($request){
        return DB::table('password_resets')->where([

@@ -17,6 +17,13 @@ class PropertyTypesController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
+
+    public function __construct()
+    {
+        $this->middleware('auth:api');
+    }
+
+    
     public function index()
     {
         $data = PropertyType::join('properties as p', 'p.id', 'property_types.property_id')
