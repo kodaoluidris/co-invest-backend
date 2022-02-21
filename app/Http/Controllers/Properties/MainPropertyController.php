@@ -17,6 +17,10 @@ class MainPropertyController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
+    public function __construct()
+    {
+        $this->middleware('auth:api');
+    }
     public function index()
     {
         $data = MainProperty::join('property_types as pt', 'pt.id', 'main_properties.property_type_id')

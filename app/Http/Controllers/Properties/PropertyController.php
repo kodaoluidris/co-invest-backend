@@ -18,6 +18,12 @@ class PropertyController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
+    
+    public function __construct()
+    {
+        $this->middleware('auth:api');
+    }
+
     public function index()
     {
         $all_property = Property::select('*')->orderBy('created_at','desc');
@@ -28,7 +34,7 @@ class PropertyController extends Controller
             }
             return $this->successResponse(__('property.view'), $all_property->get());
         }
-        return $this->successResponse(__('property.view'), $all_property->paginate(10));
+        return $this->successResponse(__('property.view'), $all_property->paginate(40));
 
     }
 

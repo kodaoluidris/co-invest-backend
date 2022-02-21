@@ -34,6 +34,7 @@ Route::group(['middleware' => 'api', 'prefix' => 'auth'], function ($router) {
     Route::post('logout', [AuthController::class, 'logout']);
     Route::post('refresh',  [AuthController::class, 'refresh']);
     Route::post('me', [AuthController::class, 'me']);
+    Route::post('complete-profile', [AuthController::class, 'complete_profile'])->name('complete_profile');
 
     
 
