@@ -66,6 +66,11 @@ Route::group(['middleware' => 'api'], function ($router) {
         Route::post('/', [MainPropertyController::class, 'store'])->name('store');
         Route::post('/update/{id}', [MainPropertyController::class, 'update'])->name('update');
         Route::delete('/{id}', [MainPropertyController::class, 'destroy'])->name('destroy');
+
+        Route::prefix('manage_groups')->name('manage_groups.')->group(function() {
+            Route::post('/', [MainPropertyController::class, 'allocate_groups'])->name('allocate_groups');
+            Route::post('/{id}', [MainPropertyController::class, 'edit_allocate_groups'])->name('edit_allocate_groups');
+        });
     });
 
     Route::prefix('property_groups')->name('property_groups.')->group(function() {
