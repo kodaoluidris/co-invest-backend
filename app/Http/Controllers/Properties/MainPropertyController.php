@@ -7,7 +7,9 @@ use App\Models\MainProperty;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use App\Http\Traits\ApiResponseTrait;
+use App\Models\MainPropertyGroup;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
 
 class MainPropertyController extends Controller
 {
@@ -30,18 +32,74 @@ class MainPropertyController extends Controller
         foreach ($data as  $value) {
             $value->image = json_decode($value->image);
             $value->filename = json_decode($value->filename);
+            $group_allocated = MainPropertyGroup::where('main_property_id',$value->id)->get()
+            ->makeHidden(['created_at', 'updated_at']);
+            
+            if(count($group_allocated) > 0) {
+                $value->group_allocated = $group_allocated;
+
+            } else {
+                $value->group_allocated = false;
+
+            }
         }
         return $this->successResponse(__('mainproperty.view'), $data);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
+   
+    public function allocate_groups()
     {
-        //
+        $validator = Validator::make(request()->all(), [
+            'main_property_id' => 'required',
+            'values' => 'required|array',
+            'groups' => 'required'
+        ]);
+        if($validator->fails()){
+            return $this->failureResponse(__('property.mainproperty'), $validator->errors()->first());
+        }
+        $data=[];
+        foreach(request()->values as $key => $value) {
+            array_push($data, [
+                "main_property_id" => (int) request()->main_property_id,
+                "no_of_people" => (int) $value["np"],
+                "group_price" => (int) $value["price"],
+                "groups" => (int) request()->groups
+            ]);
+
+        }
+        $save = DB::table('main_property_groups')->insert($data);
+        if($save) return $this->successResponse(__('mainproperty.created'));
+        return $this->failureResponse(__('mainproperty.error'),null,500);
+    }
+
+    public function edit_allocate_groups($id)
+    {
+        $validator = Validator::make(request()->all(), [
+            'main_property_id' => 'required',
+            'values' => 'required|array',
+            'groups' => 'required'
+        ]);
+        if($validator->fails()){
+            return $this->failureResponse(__('property.mainproperty'), $validator->errors()->first());
+        }
+        //Getting the list of groups id for update
+        $main_groups_ids = array_map(function($item) {
+            return $item["id"];
+        },request()->values);
+        
+
+        $save = MainPropertyGroup::where([
+            'main_property_id'=> $id,
+            'groups' => request()->groups
+        ])
+        ->whereIn('id', $main_groups_ids)->upsert(
+            request()->values,
+            ['id','main_property_id','no_of_people', 'group_price', 'groups'],
+            ['no_of_people', 'group_price']
+        );
+
+        if($save) return $this->successResponse(__('mainproperty.updated'));
+        return $this->failureResponse(__('mainproperty.error'),null,500);
     }
 
     /**
