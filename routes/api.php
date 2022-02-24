@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AnalyticsController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ChangePasswordController;
 use App\Http\Controllers\PasswordResetRequestController;
@@ -35,14 +36,16 @@ Route::group(['middleware' => 'api', 'prefix' => 'auth'], function ($router) {
     Route::post('refresh',  [AuthController::class, 'refresh']);
     Route::post('me', [AuthController::class, 'me']);
     Route::post('complete-profile', [AuthController::class, 'complete_profile'])->name('complete_profile');
-
-    
-
 });
+
+Route::group(['prefix' => 'analytics'], function ($router) {
+   Route::get('/properties', [AnalyticsController::class, 'getPropertyCount']);
+});
+
 Route::group(['middleware' => 'api'], function ($router) {
    // Property Route
    Route::prefix('properties')->name('properties.')->group(function() {
-        Route::post('/all', [PropertyController::class, 'index'])->name('index');
+        Route::post('/all', [PropertyController::class, 'index'])->name('index')->withoutMiddleware('api');
         Route::get('/{id}', [PropertyController::class, 'show'])->name('show');
         Route::put('/toggle-status/{id}', [PropertyController::class, 'toggle_status'])->name('toggle_status');
         Route::post('/', [PropertyController::class, 'store'])->name('store');
