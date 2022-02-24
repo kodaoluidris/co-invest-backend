@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ChangePasswordController;
+use App\Http\Controllers\Client\ClientController;
 use App\Http\Controllers\PasswordResetRequestController;
 use App\Http\Controllers\Properties\MainPropertyController;
 use App\Http\Controllers\Properties\PropertyController;
@@ -83,4 +84,13 @@ Route::group(['middleware' => 'api'], function ($router) {
 
     
 
+});
+
+
+//Client open routes
+
+Route::prefix('client')->name('client')->group(function() {
+    Route::post('/all-main-properties', [ClientController::class, 'index'])->name('all');
+    Route::get('/single-main-property/{id}', [ClientController::class, 'show'])->name('single');
+    Route::get('/main-property-group/{id}', [ClientController::class, 'single_group'])->name('single_group');
 });

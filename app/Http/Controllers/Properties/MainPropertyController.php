@@ -26,9 +26,11 @@ class MainPropertyController extends Controller
     public function index()
     {
         $data = MainProperty::join('property_types as pt', 'pt.id', 'main_properties.property_type_id')
-        ->select('main_properties.*', 'pt.name as pt_name', 'pt.description as pt_desc', 'pt.id as pt_id')
-        ->orderBy('main_properties.created_at','desc')
-        ->paginate(40);
+        ->select('main_properties.*', 'pt.name as pt_name', 'pt.description as pt_desc', 'pt.id as pt_id');
+        if(request()->has('client_request')){
+            $data->where('main_properties.status', 'active');
+        }
+        $data = $data->orderBy('main_properties.created_at','desc')->paginate(40);
         foreach ($data as  $value) {
             $value->image = json_decode($value->image);
             $value->filename = json_decode($value->filename);
@@ -49,6 +51,7 @@ class MainPropertyController extends Controller
    
     public function allocate_groups()
     {
+
         $validator = Validator::make(request()->all(), [
             'main_property_id' => 'required',
             'values' => 'required|array',
@@ -57,6 +60,7 @@ class MainPropertyController extends Controller
         if($validator->fails()){
             return $this->failureResponse(__('property.mainproperty'), $validator->errors()->first());
         }
+        $url= url(request()->header('origin'));
         $data=[];
         foreach(request()->values as $key => $value) {
             array_push($data, [
@@ -68,12 +72,24 @@ class MainPropertyController extends Controller
 
         }
         $save = DB::table('main_property_groups')->insert($data);
-        if($save) return $this->successResponse(__('mainproperty.created'));
+        $data = MainPropertyGroup::where('main_property_id', request()->main_property_id)->select('id')->get();
+        
+        foreach($data as $value) {
+            $update_link = MainPropertyGroup::where([
+                'main_property_id'=> request()->main_property_id,
+                'id' => $value['id']
+            ])->update([
+                'url' => $url. '/home/main-property/groups/details/' . $value["id"]
+            ]);
+        }
+
+        if($data && $save) return $this->successResponse(__('mainproperty.created'));
         return $this->failureResponse(__('mainproperty.error'),null,500);
     }
 
     public function edit_allocate_groups($id)
     {
+        
         $validator = Validator::make(request()->all(), [
             'main_property_id' => 'required',
             'values' => 'required|array',
