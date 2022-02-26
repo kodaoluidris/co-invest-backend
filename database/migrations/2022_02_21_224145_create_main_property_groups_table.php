@@ -18,7 +18,7 @@ class CreateMainPropertyGroupsTable extends Migration
             $table->foreignId('main_property_id')->constrained('main_properties')->onUpdate('cascade')->onDelete('restrict');
             $table->integer('no_of_people');
             $table->integer('no_of_people_reg')->default(0);
-            $table->integer('url')->nullable();
+            $table->string('url')->nullable();
             $table->integer('group_price');
             $table->integer('groups')->nullable();
             $table->timestamps();

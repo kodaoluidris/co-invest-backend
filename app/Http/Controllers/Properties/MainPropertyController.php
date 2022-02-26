@@ -52,38 +52,42 @@ class MainPropertyController extends Controller
     public function allocate_groups()
     {
 
-        $validator = Validator::make(request()->all(), [
-            'main_property_id' => 'required',
-            'values' => 'required|array',
-            'groups' => 'required'
-        ]);
-        if($validator->fails()){
-            return $this->failureResponse(__('property.mainproperty'), $validator->errors()->first());
-        }
-        $url= url(request()->header('origin'));
-        $data=[];
-        foreach(request()->values as $key => $value) {
-            array_push($data, [
-                "main_property_id" => (int) request()->main_property_id,
-                "no_of_people" => (int) $value["np"],
-                "group_price" => (int) $value["price"],
-                "groups" => (int) request()->groups
+        DB::transaction(function(){
+            $validator = Validator::make(request()->all(), [
+                'main_property_id' => 'required',
+                'values' => 'required|array',
+                'groups' => 'required'
             ]);
+            if($validator->fails()){
+                return $this->failureResponse(__('property.mainproperty'), $validator->errors()->first());
+            }
+            $url= url(request()->header('origin'));
+            $data=[];
+            foreach(request()->values as $key => $value) {
+                array_push($data, [
+                    "main_property_id" => (int) request()->main_property_id,
+                    "no_of_people" => (int) $value["np"],
+                    "group_price" => (int) $value["price"],
+                    "groups" => (int) request()->groups
+                ]);
 
-        }
-        $save = DB::table('main_property_groups')->insert($data);
-        $data = MainPropertyGroup::where('main_property_id', request()->main_property_id)->select('id')->get();
+            }
+            $save = DB::table('main_property_groups')->insert($data);
+            $data = MainPropertyGroup::where('main_property_id', request()->main_property_id)->select('id')->get();
+            
+            foreach($data as $value) {
+                $update_link = MainPropertyGroup::where([
+                    'main_property_id'=> request()->main_property_id,
+                    'id' => $value['id']
+                ])->update([
+                    'url' => $url. '/home/main-property/groups/details/' . $value["id"]
+                ]);
+            }
+        });
+       
+
+        return $this->successResponse(__('mainproperty.created'));
         
-        foreach($data as $value) {
-            $update_link = MainPropertyGroup::where([
-                'main_property_id'=> request()->main_property_id,
-                'id' => $value['id']
-            ])->update([
-                'url' => $url. '/home/main-property/groups/details/' . $value["id"]
-            ]);
-        }
-
-        if($data && $save) return $this->successResponse(__('mainproperty.created'));
         return $this->failureResponse(__('mainproperty.error'),null,500);
     }
 
