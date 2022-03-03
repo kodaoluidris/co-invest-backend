@@ -84,6 +84,12 @@ Route::group(['middleware' => 'api'], function ($router) {
         Route::post('/update/{id}', [PropertyGroupsController::class, 'update'])->name('update');
         Route::delete('/{id}', [PropertyGroupsController::class, 'destroy'])->name('destroy');
     });
+    Route::prefix('message')->name('message.')->group(function() {
+        Route::get('/', [MessageController::class, 'index']);
+        Route::get('messages', [MessageController::class, 'fetchMessages']);
+        Route::post('messages', [MessageController::class, 'sendMessage']);
+    });
+
 
     
 
