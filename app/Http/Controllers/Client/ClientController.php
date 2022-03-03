@@ -8,6 +8,8 @@ use Illuminate\Http\Request;
 use App\Http\Traits\ApiResponseTrait;
 use App\Models\MainPropertyGroup;
 use App\Models\MainProperty;
+use App\Models\userProperty;
+use Illuminate\Support\Facades\DB;
 
 class ClientController extends Controller
 {
@@ -72,13 +74,96 @@ class ClientController extends Controller
         ->select('mp.*', 'main_property_groups.*', 'mp.id as mp_id', 'pt.name as p_name')
         ->first();
         
+        
         if(!$data)  return $this->failureResponse(__('Not found'),null,404);
         $data = $data->makeHidden(['created_at', 'updated_at', 'filename']);
         if($data->no_of_people == $data->no_of_people_reg) return $this->successResponse(__('Not allowed'),$data,208);
+        $data->members = userProperty::join('users', 'users.id', 'user_properties.user_id')
+        ->where('user_properties.main_property_group_id', $data->id)
+        ->select(
+            'users.fname','users.lname','users.email','users.phone','users.username',
+            DB::raw("COUNT(user_id) as total_slot"))
+            ->groupBy('user_properties.user_id', 'user_properties.main_property_group_id')->get();
+
         $data->image = json_decode($data->image);
         return $this->successResponse(__('mainproperty.single'), $data);
         
 
+    }
+
+
+    public function checkout()
+    {
+        request()->validate([
+            'user_id' => 'required',
+            'main_property_group_id' => 'required',
+        ]);
+        DB::transaction(function() {
+            $userProperty = userProperty::create([
+                'user_id' => request()->user_id,
+                'main_property_group_id' => request()->main_property_group_id
+            ]);
+            $incrementColumn = MainPropertyGroup::where('id', request()->main_property_group_id)->first();
+            $incrementColumn->no_of_people_reg += 1;
+            $incrementColumn->save();
+
+        });
+
+         return response('Checkout successfully', 200);
+        return response('Something went wrong', 500);
+    }
+
+
+    /*** CLIENT Investment  ***/
+    public function investment_index()
+    {
+        request()->validate([
+            'user_id' => 'required'
+        ]);
+        //$data2=[];
+        $data = userProperty::
+        join('main_property_groups as mpg', 'mpg.id', 'user_properties.main_property_group_id')
+        ->join('main_properties as mp', 'mp.id', 'mpg.main_property_id')
+        ->select(
+            'mp.*', 'mp.id as mp_id','mpg.id as mpg_id', 'mpg.group_name','user_properties.*',
+            DB::raw("count(user_id) as total_slot")
+        )
+        ->groupBy('user_id', 'main_property_group_id')
+        ->where('user_id', request()->user_id)->orderBy('user_properties.created_at', 'desc')->get();
+        
+        foreach($data as $value) {
+            $value['image'] = json_decode($value['image']);
+        }
+        return($data);
+    }
+
+    public function single_investment($id)
+    {
+        request()->validate([
+            'user_id' => 'required'
+        ]);
+        //$data2=[];
+        $data = userProperty::
+        join('main_property_groups as mpg', 'mpg.id', 'user_properties.main_property_group_id')
+        ->join('main_properties as mp', 'mp.id', 'mpg.main_property_id')
+        ->select(
+            'mp.*', 'mp.id as mp_id','mpg.id as mpg_id', 'mpg.group_name','mpg.group_price',
+            'mpg.no_of_people', 'mpg.no_of_people_reg', 'mpg.url'
+            ,'mpg.groups','user_properties.*'
+        )
+        ->where([
+            'user_id'=> request()->user_id,
+            'user_properties.id' => $id
+        ])->orderBy('user_properties.created_at', 'desc')->first();
+        if(!$data) return response()->json('Not found', 404);
+        $data->members = userProperty::join('users', 'users.id', 'user_properties.user_id')
+        ->where('user_properties.main_property_group_id', $data->mpg_id)
+        ->select(
+            'users.fname','users.lname','users.email','users.phone','users.username',
+            DB::raw("COUNT(user_id) as total_slot"))
+            ->groupBy('user_properties.user_id', 'user_properties.main_property_group_id')->get();
+        $data->image = json_decode($data->image);
+        return($data);
     }
 
     /**
