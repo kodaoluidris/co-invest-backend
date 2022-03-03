@@ -26,14 +26,15 @@ class MessageController extends Controller
  
     public function sendMessage(Request $request)
     {
-        $user = User::where('id', Auth::id())->first();
+        $user = User::where('id', request()->id)->first();
 
-        $message = $user->messages()->create([
+        $message = Message::create([
+          'user_id' => $user->id,
           'message' => $request->input('message'),
           'main_property_group_id' => request()->main_property_group_id,
         ]);
 
-        broadcast(new MessageSent($user, $message))->toOthers();
+        event(new MessageSent($user, $message));
       
         return ['status' => 'Message Sent!'];
     }
