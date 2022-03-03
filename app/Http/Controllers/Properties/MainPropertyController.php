@@ -67,6 +67,7 @@ class MainPropertyController extends Controller
                 array_push($data, [
                     "main_property_id" => (int) request()->main_property_id,
                     "no_of_people" => (int) $value["np"],
+                    "group_name" => $value["gn"],
                     "group_price" => (int) $value["price"],
                     "groups" => (int) request()->groups
                 ]);

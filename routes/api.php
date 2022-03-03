@@ -96,4 +96,13 @@ Route::prefix('client')->name('client')->group(function() {
     Route::post('/all-main-properties', [ClientController::class, 'index'])->name('all');
     Route::get('/single-main-property/{id}', [ClientController::class, 'show'])->name('single');
     Route::get('/main-property-group/{id}', [ClientController::class, 'single_group'])->name('single_group');
+    Route::group(['middleware' => 'api'],function() {
+        Route::post('/checkout', [ClientController::class, 'checkout'])->name('checkout')->middleware('api');
+
+        Route::prefix('my-investments')->group(function() {
+            Route::post('/', [ClientController::class, 'investment_index'])->name('investment_index');
+            Route::post('/{id}', [ClientController::class, 'single_investment'])->name('single_investment');
+        });
+
+    });
 });
