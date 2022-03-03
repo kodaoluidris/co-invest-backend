@@ -100,9 +100,9 @@ class PropertyController extends Controller
 
      public function toggle_status($id)
      {
-         $property=Property::where('id', $id)->update([
-             'status' => request()->status
-         ]);
+        $property=Property::where('id', $id)->update([
+            'status' => request()->status
+        ]);
 
          return $this->successResponse(__('property.updated'), $property); 
      }
