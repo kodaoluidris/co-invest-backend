@@ -1,7 +1,10 @@
 <?php
 
+use App\Http\Controllers\AnalyticsController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ChangePasswordController;
+use App\Http\Controllers\Client\ClientController;
+use App\Http\Controllers\MessageController;
 use App\Http\Controllers\PasswordResetRequestController;
 use App\Http\Controllers\Properties\MainPropertyController;
 use App\Http\Controllers\Properties\PropertyController;
@@ -35,14 +38,16 @@ Route::group(['middleware' => 'api', 'prefix' => 'auth'], function ($router) {
     Route::post('refresh',  [AuthController::class, 'refresh']);
     Route::post('me', [AuthController::class, 'me']);
     Route::post('complete-profile', [AuthController::class, 'complete_profile'])->name('complete_profile');
-
-    
-
 });
+
+Route::group(['prefix' => 'analytics'], function ($router) {
+   Route::get('/properties', [AnalyticsController::class, 'getPropertyCount']);
+});
+
 Route::group(['middleware' => 'api'], function ($router) {
    // Property Route
    Route::prefix('properties')->name('properties.')->group(function() {
-        Route::post('/all', [PropertyController::class, 'index'])->name('index');
+        Route::post('/all', [PropertyController::class, 'index'])->name('index')->withoutMiddleware('api');
         Route::get('/{id}', [PropertyController::class, 'show'])->name('show');
         Route::put('/toggle-status/{id}', [PropertyController::class, 'toggle_status'])->name('toggle_status');
         Route::post('/', [PropertyController::class, 'store'])->name('store');
@@ -66,6 +71,11 @@ Route::group(['middleware' => 'api'], function ($router) {
         Route::post('/', [MainPropertyController::class, 'store'])->name('store');
         Route::post('/update/{id}', [MainPropertyController::class, 'update'])->name('update');
         Route::delete('/{id}', [MainPropertyController::class, 'destroy'])->name('destroy');
+
+        Route::prefix('manage_groups')->name('manage_groups.')->group(function() {
+            Route::post('/', [MainPropertyController::class, 'allocate_groups'])->name('allocate_groups');
+            Route::post('/{id}', [MainPropertyController::class, 'edit_allocate_groups'])->name('edit_allocate_groups');
+        });
     });
 
     Route::prefix('property_groups')->name('property_groups.')->group(function() {
@@ -75,7 +85,31 @@ Route::group(['middleware' => 'api'], function ($router) {
         Route::post('/update/{id}', [PropertyGroupsController::class, 'update'])->name('update');
         Route::delete('/{id}', [PropertyGroupsController::class, 'destroy'])->name('destroy');
     });
-
     
 
+});
+
+
+//Client open routes
+
+Route::prefix('client')->name('client')->group(function() {
+    Route::post('/all-main-properties', [ClientController::class, 'index'])->name('all');
+    Route::get('/single-main-property/{id}', [ClientController::class, 'show'])->name('single');
+    Route::get('/main-property-group/{id}', [ClientController::class, 'single_group'])->name('single_group');
+    Route::group(['middleware' => 'api'],function() {
+        Route::post('/checkout', [ClientController::class, 'checkout'])->name('checkout')->middleware('api');
+
+        Route::prefix('my-investments')->group(function() {
+            Route::post('/', [ClientController::class, 'investment_index'])->name('investment_index');
+            Route::post('/{id}', [ClientController::class, 'single_investment'])->name('single_investment');
+        });
+        Route::prefix('chat')->name('chat.')->group(function() {
+            Route::get('/', [MessageController::class, 'index']);
+            Route::get('messages', [MessageController::class, 'fetchMessages']);
+            Route::post('messages', [MessageController::class, 'sendMessage']);
+        });
+
+    });
+
+    
 });
