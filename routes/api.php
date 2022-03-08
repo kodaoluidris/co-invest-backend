@@ -4,6 +4,7 @@ use App\Http\Controllers\AnalyticsController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ChangePasswordController;
 use App\Http\Controllers\Client\ClientController;
+use App\Http\Controllers\MessageController;
 use App\Http\Controllers\PasswordResetRequestController;
 use App\Http\Controllers\Properties\MainPropertyController;
 use App\Http\Controllers\Properties\PropertyController;
@@ -84,7 +85,6 @@ Route::group(['middleware' => 'api'], function ($router) {
         Route::post('/update/{id}', [PropertyGroupsController::class, 'update'])->name('update');
         Route::delete('/{id}', [PropertyGroupsController::class, 'destroy'])->name('destroy');
     });
-
     
 
 });
@@ -103,6 +103,13 @@ Route::prefix('client')->name('client')->group(function() {
             Route::post('/', [ClientController::class, 'investment_index'])->name('investment_index');
             Route::post('/{id}', [ClientController::class, 'single_investment'])->name('single_investment');
         });
+        Route::prefix('chat')->name('chat.')->group(function() {
+            Route::get('/', [MessageController::class, 'index']);
+            Route::get('messages', [MessageController::class, 'fetchMessages']);
+            Route::post('messages', [MessageController::class, 'sendMessage']);
+        });
 
     });
+
+    
 });
