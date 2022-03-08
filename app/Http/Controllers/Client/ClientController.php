@@ -84,7 +84,7 @@ class ClientController extends Controller
         ->select(
             'users.fname','users.lname','users.email','users.phone','users.username',
             DB::raw("COUNT(user_id) as total_slot"))
-            ->groupBy('user_properties.user_id', 'user_properties.main_property_group_id')->get();
+            ->groupBy('user_properties.user_id', 'user_properties.main_property_group_id', 'users.fname', 'users.lname', 'users.email', 'users.phone', 'users.username')->get();
 
         $data->image = json_decode($data->image);
         return $this->successResponse(__('mainproperty.single'), $data);
@@ -136,7 +136,7 @@ class ClientController extends Controller
             'mp.*', 'mp.id as mp_id','mpg.id as mpg_id', 'mpg.group_name','user_properties.*',
             DB::raw("count(user_id) as total_slot")
         )
-        ->groupBy('user_id', 'main_property_group_id')
+        ->groupBy('user_id', 'main_property_group_id', 'mp.id', 'mpg.id', 'user_properties.id')
         ->where('user_id', request()->user_id)->orderBy('user_properties.created_at', 'desc')->get();
         
         foreach($data as $value) {
@@ -169,7 +169,7 @@ class ClientController extends Controller
         ->select(
             'users.fname','users.lname','users.email','users.phone','users.username',
             DB::raw("COUNT(user_id) as total_slot"))
-            ->groupBy('user_properties.user_id', 'user_properties.main_property_group_id')->get();
+            ->groupBy('user_properties.user_id', 'user_properties.main_property_group_id', 'users.fname', 'users.lname', 'users.email', 'users.phone', 'users.username')->get();
         $data->image = json_decode($data->image);
         return($data);
     }
