@@ -16,6 +16,8 @@ class CreateTransactionsTable extends Migration
         Schema::create('transactions', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained('users');
+            $table->foreignId('main_property_group_id')->constrained('main_property_group   s');
+            $table->integer('amount');
             $table->enum('status', ['pending', 'approved', 'failed'])->default('pending');
             $table->json('raw_response')->nullable();
             $table->timestamps();

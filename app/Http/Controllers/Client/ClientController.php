@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use App\Http\Traits\ApiResponseTrait;
 use App\Models\MainPropertyGroup;
 use App\Models\MainProperty;
+use App\Models\Transaction;
 use App\Models\userProperty;
 use Illuminate\Support\Facades\DB;
 
@@ -99,17 +100,24 @@ class ClientController extends Controller
             'main_property_group_id' => 'required',
         ]);
         DB::transaction(function() {
+            $insert_trans = new Transaction;
+            $insert_trans->user_id = request()->user_id;
+            $insert_trans->main_property_group_id = request()->main_property_group_id;
+            $insert_trans->amount = request()->amount;
+            $insert_trans->status = 'approved';
+            $insert_trans->save();
+
             $userProperty = userProperty::create([
                 'user_id' => request()->user_id,
-                'main_property_group_id' => request()->main_property_group_id
+                'main_property_group_id' => request()->main_property_group_id,
+                'transaction_id' => $insert_trans->id
             ]);
             $incrementColumn = MainPropertyGroup::where('id', request()->main_property_group_id)->first();
             $incrementColumn->no_of_people_reg += 1;
             $incrementColumn->save();
 
         });
-
-         return response('Checkout successfully', 200);
+        return response('Checkout successfully', 200);
         return response('Something went wrong', 500);
     }
 
@@ -164,6 +172,22 @@ class ClientController extends Controller
             ->groupBy('user_properties.user_id', 'user_properties.main_property_group_id')->get();
         $data->image = json_decode($data->image);
         return($data);
+    }
+
+
+
+    public function get_analytics($id)
+    {
+        $data = userProperty::
+        join('transactions as tr','tr.id', 'user_properties.transaction_id')
+        ->select(DB::raw("SUM(tr.amount) as total_paid, 
+            COUNT(user_properties.id) as total_bought
+        ")
+        )
+        ->where('user_properties.user_id', $id)->first();
+        $transactions = Transaction::where('user_id', $id)->get();
+        $data->transactions = $transactions;
+        return $data;
     }
 
     /**

@@ -70,7 +70,7 @@ Route::group(['middleware' => 'api'], function ($router) {
         Route::post('/', [MainPropertyController::class, 'store'])->name('store');
         Route::post('/update/{id}', [MainPropertyController::class, 'update'])->name('update');
         Route::delete('/{id}', [MainPropertyController::class, 'destroy'])->name('destroy');
-
+        Route::post('/add-more', [MainPropertyController::class, 'add_more'])->name('add_more');
         Route::prefix('manage_groups')->name('manage_groups.')->group(function() {
             Route::post('/', [MainPropertyController::class, 'allocate_groups'])->name('allocate_groups');
             Route::post('/{id}', [MainPropertyController::class, 'edit_allocate_groups'])->name('edit_allocate_groups');
@@ -90,7 +90,7 @@ Route::group(['middleware' => 'api'], function ($router) {
 });
 
 
-//Client open routes
+//Client
 
 Route::prefix('client')->name('client')->group(function() {
     Route::post('/all-main-properties', [ClientController::class, 'index'])->name('all');
@@ -106,3 +106,5 @@ Route::prefix('client')->name('client')->group(function() {
 
     });
 });
+    Route::get('analytics/{id}', [ClientController::class, 'get_analytics']);
+
