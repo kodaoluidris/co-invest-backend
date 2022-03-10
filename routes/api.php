@@ -33,6 +33,7 @@ Route::post('/change-password', [ChangePasswordController::class, 'passwordReset
 
 Route::group(['middleware' => 'api', 'prefix' => 'auth'], function ($router) {
     Route::post('register', [AuthController::class, 'register']);
+    Route::post('user_type', [AuthController::class, 'auth_user_type']);
     Route::post('login', [AuthController::class, 'login']);
     Route::post('logout', [AuthController::class, 'logout']);
     Route::post('refresh',  [AuthController::class, 'refresh']);
@@ -113,5 +114,5 @@ Route::prefix('client')->name('client')->group(function() {
 
     
 });
-    Route::get('analytics/{id}', [ClientController::class, 'get_analytics']);
+Route::get('analytics/{id}', [ClientController::class, 'get_analytics']);
 

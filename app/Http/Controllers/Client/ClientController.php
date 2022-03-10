@@ -82,11 +82,12 @@ class ClientController extends Controller
         $data->members = userProperty::join('users', 'users.id', 'user_properties.user_id')
         ->where('user_properties.main_property_group_id', $data->id)
         ->select(
-            'users.fname','users.lname','users.email','users.phone','users.username',
+            'users.fname','users.lname','users.email','users.id as user_id','users.phone','users.username',
             DB::raw("COUNT(user_id) as total_slot"))
             ->groupBy('user_properties.user_id', 'user_properties.main_property_group_id', 'users.fname', 'users.lname', 'users.email', 'users.phone', 'users.username')->get();
 
         $data->image = json_decode($data->image);
+        $data->more_infos = json_decode($data->more_infos);
         return $this->successResponse(__('mainproperty.single'), $data);
         
 
@@ -136,7 +137,7 @@ class ClientController extends Controller
             'mp.*', 'mp.id as mp_id','mpg.id as mpg_id', 'mpg.group_name','user_properties.*',
             DB::raw("count(user_id) as total_slot")
         )
-        ->groupBy('user_id', 'main_property_group_id', 'mp.id', 'mpg.id', 'user_properties.id')
+        ->groupBy('user_id', 'main_property_group_id')
         ->where('user_id', request()->user_id)->orderBy('user_properties.created_at', 'desc')->get();
         
         foreach($data as $value) {
@@ -180,12 +181,18 @@ class ClientController extends Controller
     {
         $data = userProperty::
         join('transactions as tr','tr.id', 'user_properties.transaction_id')
+        ->join('main_property_groups as mpg', 'mpg.id', 'user_properties.main_property_group_id')
         ->select(DB::raw("SUM(tr.amount) as total_paid, 
-            COUNT(user_properties.id) as total_bought
+            COUNT(user_properties.id) as total_bought,
+            COUNT( DISTINCT  mpg.id) as total_groups
         ")
         )
         ->where('user_properties.user_id', $id)->first();
-        $transactions = Transaction::where('user_id', $id)->get();
+        $transactions = Transaction::join('main_property_groups as mpg', 'mpg.id', 'transactions.id')
+        ->join('main_properties as mp', 'mp.id', 'mpg.main_property_id')
+        ->join('property_types', 'property_types.id', 'mp.property_type_id')
+        ->select('transactions.*', 'mp.name as mp_name', 'property_types.name as pt_name')
+        ->where('user_id', $id)->orderBy('transactions.created_at', 'desc')->get();
         $data->transactions = $transactions;
         return $data;
     }
