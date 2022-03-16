@@ -34,6 +34,7 @@ class MainPropertyController extends Controller
         foreach ($data as  $value) {
             $value->image = json_decode($value->image);
             $value->filename = json_decode($value->filename);
+            $value->more_infos = json_decode($value->more_infos);
             $group_allocated = MainPropertyGroup::where('main_property_id',$value->id)->get()
             ->makeHidden(['created_at', 'updated_at']);
             
@@ -46,6 +47,23 @@ class MainPropertyController extends Controller
             }
         }
         return $this->successResponse(__('mainproperty.view'), $data);
+    }
+
+    public function add_more()
+    {
+        $json_data=[];
+        $add_more = MainProperty::where('id', request()->main_property_id)->first();
+        $old_json = json_decode($add_more->more_infos);
+        foreach (request()->values as $key => $value) {
+            array_push($json_data, $value);
+        }
+        if(!is_null($old_json) && count($old_json) > 0) {
+            array_push($json_data, ...$old_json);
+        }
+        $add_more->more_infos = json_encode($json_data);
+        if($add_more->save()) return response()->json('Action successful', 200);
+        return response()->json('Action not successful', 500);
+        
     }
 
    
@@ -137,18 +155,22 @@ class MainPropertyController extends Controller
             'property_type_id' => 'required|integer',
             'price' => 'required|integer',
             'groups' => 'required|integer',
-            'description' => 'required|string'
+            'description' => 'required|string',
+            'appreciate' => 'required',
         ]);
 
         if($validator->fails()){
             return $this->failureResponse(__('property.mainproperty'), $validator->errors()->first());
         }
+        $more_infos =[];
         $mproperty = new MainProperty;
         $mproperty->name = request()->name;
         $mproperty->property_type_id = request()->property_type_id;
         $mproperty->price = request()->price;
         $mproperty->groups = request()->groups;
         $mproperty->description = request()->description;
+        $more_infos[] = ["name" => "appreciate", "value" => request()->appreciate];
+        $mproperty->more_infos = json_encode($more_infos);
         if($mproperty->save()) {
             $images = [];
             $filenames = [];

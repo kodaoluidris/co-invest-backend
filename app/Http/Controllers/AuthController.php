@@ -76,9 +76,12 @@ class AuthController extends Controller
      *
      * @return \Illuminate\Http\JsonResponse
      */
-    public function me()
+    public function auth_user_type()
     {
-        return response()->json(auth()->user());
+       $user = User::join('user_types', 'user_types.id', 'users.user_type_id')
+       ->where('users.id', request()->id)->selectRaw('user_types.name')->first();
+       if(!$user) return response()->json('Invalid user', 405);
+       return response()->json($user,200);
     }
 
     public function complete_profile() 
