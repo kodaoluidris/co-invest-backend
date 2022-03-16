@@ -4,6 +4,8 @@ use App\Http\Controllers\AnalyticsController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ChangePasswordController;
 use App\Http\Controllers\Client\ClientController;
+use App\Http\Controllers\Client\QuickSaleController;
+use App\Http\Controllers\Client\QuickSaleHistoriesController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\PasswordResetRequestController;
 use App\Http\Controllers\Properties\MainPropertyController;
@@ -102,6 +104,9 @@ Route::prefix('client')->name('client')->group(function() {
 
         Route::prefix('my-investments')->group(function() {
             Route::post('/', [ClientController::class, 'investment_index'])->name('investment_index');
+            Route::post('/quick-sale', [QuickSaleController::class, 'sell_portion'])->name('sell_portion');
+            Route::post('/quick-sale-notification', [QuickSaleHistoriesController::class, 'sale_notification'])->name('sale_notification');
+            Route::post('/reply-sale-notification', [QuickSaleHistoriesController::class, 'reply_sale_notification'])->name('reply_sale_notification');
             Route::post('/{id}', [ClientController::class, 'single_investment'])->name('single_investment');
         });
         Route::prefix('chat')->name('chat.')->group(function() {

@@ -148,6 +148,7 @@ class ClientController extends Controller
 
     public function single_investment($id)
     {
+       
         request()->validate([
             'user_id' => 'required'
         ]);
@@ -165,10 +166,11 @@ class ClientController extends Controller
             'user_properties.id' => $id
         ])->orderBy('user_properties.created_at', 'desc')->first();
         if(!$data) return response()->json('Not found', 404);
+
         $data->members = userProperty::join('users', 'users.id', 'user_properties.user_id')
         ->where('user_properties.main_property_group_id', $data->mpg_id)
         ->select(
-            'users.fname','users.lname','users.email','users.phone','users.username',
+            'users.fname','users.lname','users.email','users.phone','users.username','users.id as mem_user_id',
             DB::raw("COUNT(user_id) as total_slot"))
             ->groupBy('user_properties.user_id', 'user_properties.main_property_group_id', 'users.fname', 'users.lname', 'users.email', 'users.phone', 'users.username')->get();
         $data->image = json_decode($data->image);
