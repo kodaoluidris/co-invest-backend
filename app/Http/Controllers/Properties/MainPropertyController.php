@@ -7,7 +7,9 @@ use App\Models\MainProperty;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use App\Http\Traits\ApiResponseTrait;
+use App\Models\MainPropertyGroup;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
 
 class MainPropertyController extends Controller
 {
@@ -24,24 +26,119 @@ class MainPropertyController extends Controller
     public function index()
     {
         $data = MainProperty::join('property_types as pt', 'pt.id', 'main_properties.property_type_id')
-        ->select('main_properties.*', 'pt.name as pt_name', 'pt.description as pt_desc', 'pt.id as pt_id')
-        ->orderBy('main_properties.created_at','desc')
-        ->paginate(40);
+        ->select('main_properties.*', 'pt.name as pt_name', 'pt.description as pt_desc', 'pt.id as pt_id');
+        if(request()->has('client_request')){
+            $data->where('main_properties.status', 'active');
+        }
+        $data = $data->orderBy('main_properties.created_at','desc')->paginate(40);
         foreach ($data as  $value) {
             $value->image = json_decode($value->image);
             $value->filename = json_decode($value->filename);
+            $value->more_infos = json_decode($value->more_infos);
+            $group_allocated = MainPropertyGroup::where('main_property_id',$value->id)->get()
+            ->makeHidden(['created_at', 'updated_at']);
+            
+            if(count($group_allocated) > 0) {
+                $value->group_allocated = $group_allocated;
+
+            } else {
+                $value->group_allocated = false;
+
+            }
         }
         return $this->successResponse(__('mainproperty.view'), $data);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
+    public function add_more()
     {
-        //
+        $json_data=[];
+        $add_more = MainProperty::where('id', request()->main_property_id)->first();
+        $old_json = json_decode($add_more->more_infos);
+        foreach (request()->values as $key => $value) {
+            array_push($json_data, $value);
+        }
+        if(!is_null($old_json) && count($old_json) > 0) {
+            array_push($json_data, ...$old_json);
+        }
+        $add_more->more_infos = json_encode($json_data);
+        if($add_more->save()) return response()->json('Action successful', 200);
+        return response()->json('Action not successful', 500);
+        
+    }
+
+   
+    public function allocate_groups()
+    {
+
+        DB::transaction(function(){
+            $validator = Validator::make(request()->all(), [
+                'main_property_id' => 'required',
+                'values' => 'required|array',
+                'groups' => 'required'
+            ]);
+            if($validator->fails()){
+                return $this->failureResponse(__('property.mainproperty'), $validator->errors()->first());
+            }
+            $url= url(request()->header('origin'));
+            $data=[];
+            foreach(request()->values as $key => $value) {
+                array_push($data, [
+                    "main_property_id" => (int) request()->main_property_id,
+                    "no_of_people" => (int) $value["np"],
+                    "group_name" => $value["gn"],
+                    "group_price" => (int) $value["price"],
+                    "groups" => (int) request()->groups
+                ]);
+
+            }
+            $save = DB::table('main_property_groups')->insert($data);
+            $data = MainPropertyGroup::where('main_property_id', request()->main_property_id)->select('id')->get();
+            
+            foreach($data as $value) {
+                $update_link = MainPropertyGroup::where([
+                    'main_property_id'=> request()->main_property_id,
+                    'id' => $value['id']
+                ])->update([
+                    'url' => $url. '/home/main-property/groups/details/' . $value["id"]
+                ]);
+            }
+        });
+       
+
+        return $this->successResponse(__('mainproperty.created'));
+        
+        return $this->failureResponse(__('mainproperty.error'),null,500);
+    }
+
+    public function edit_allocate_groups($id)
+    {
+        
+        $validator = Validator::make(request()->all(), [
+            'main_property_id' => 'required',
+            'values' => 'required|array',
+            'groups' => 'required'
+        ]);
+        if($validator->fails()){
+            return $this->failureResponse(__('property.mainproperty'), $validator->errors()->first());
+        }
+        //Getting the list of groups id for update
+        $main_groups_ids = array_map(function($item) {
+            return $item["id"];
+        },request()->values);
+        
+
+        $save = MainPropertyGroup::where([
+            'main_property_id'=> $id,
+            'groups' => request()->groups
+        ])
+        ->whereIn('id', $main_groups_ids)->upsert(
+            request()->values,
+            ['id','main_property_id','no_of_people', 'group_price', 'groups'],
+            ['no_of_people', 'group_price']
+        );
+
+        if($save) return $this->successResponse(__('mainproperty.updated'));
+        return $this->failureResponse(__('mainproperty.error'),null,500);
     }
 
     /**
@@ -58,18 +155,22 @@ class MainPropertyController extends Controller
             'property_type_id' => 'required|integer',
             'price' => 'required|integer',
             'groups' => 'required|integer',
-            'description' => 'required|string'
+            'description' => 'required|string',
+            'appreciate' => 'required',
         ]);
 
         if($validator->fails()){
             return $this->failureResponse(__('property.mainproperty'), $validator->errors()->first());
         }
+        $more_infos =[];
         $mproperty = new MainProperty;
         $mproperty->name = request()->name;
         $mproperty->property_type_id = request()->property_type_id;
         $mproperty->price = request()->price;
         $mproperty->groups = request()->groups;
         $mproperty->description = request()->description;
+        $more_infos[] = ["name" => "appreciate", "value" => request()->appreciate];
+        $mproperty->more_infos = json_encode($more_infos);
         if($mproperty->save()) {
             $images = [];
             $filenames = [];

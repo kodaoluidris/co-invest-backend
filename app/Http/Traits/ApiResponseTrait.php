@@ -25,12 +25,12 @@ trait ApiResponseTrait {
      * @param Object $data
      * @return \Illuminate\Http\Response
      */
-    public function successResponse($message, $data = null){
+    public function successResponse($message, $data = null,$status=200){
         return response([
             'status'    => true,
             'message'   => $message,
             'data'      => $this->data($data)
-        ], 200);
+        ], $status);
     }
 
     /**
