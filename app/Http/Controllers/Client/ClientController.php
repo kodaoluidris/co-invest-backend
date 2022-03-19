@@ -53,7 +53,7 @@ class ClientController extends Controller
         ->select('main_properties.*', 'pt.name as pt_name', 'pt.description as pt_desc', 'pt.id as pt_id')
         ->where('main_properties.id', $id)->first()->makeHidden(['created_at', 'updated_at', 'filename']);
         if($data) {
-            $data->image = json_decode($data->image);
+            $data->image = json_decode($data->image); $data->more_infos = json_decode($data->more_infos);
             $data->all_groups = MainPropertyGroup::where('main_property_id', $id)->get();
 
             foreach($data->all_groups as $value) {
@@ -172,7 +172,8 @@ class ClientController extends Controller
         ->select(
             'users.fname','users.lname','users.email','users.phone','users.username','users.id as mem_user_id',
             DB::raw("COUNT(user_id) as total_slot"))
-            ->groupBy('user_properties.user_id', 'user_properties.main_property_group_id', 'users.fname', 'users.lname', 'users.email', 'users.phone', 'users.username')->get();
+            ->groupBy('user_properties.user_id', 'user_properties.main_property_group_id', 'users.fname', 'users.lname', 'users.email', 'users.phone', 'users.username')
+            ->orderBy('user_properties.created_at', 'desc')->get();
         $data->image = json_decode($data->image);
         return($data);
     }
@@ -194,7 +195,7 @@ class ClientController extends Controller
         ->join('main_properties as mp', 'mp.id', 'mpg.main_property_id')
         ->join('property_types', 'property_types.id', 'mp.property_type_id')
         ->select('transactions.*', 'mp.name as mp_name', 'property_types.name as pt_name')
-        ->where('user_id', $id)->orderBy('transactions.created_at', 'desc')->get();
+        ->where(['user_id' => $id, 'transactions.status'=> 'approved'])->orderBy('transactions.created_at', 'desc')->get();
         $data->transactions = $transactions;
         return $data;
     }
