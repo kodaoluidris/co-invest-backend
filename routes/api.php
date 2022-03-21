@@ -100,6 +100,7 @@ Route::prefix('client')->name('client')->group(function() {
     Route::get('/single-main-property/{id}', [ClientController::class, 'show'])->name('single');
     Route::get('/main-property-group/{id}', [ClientController::class, 'single_group'])->name('single_group');
     Route::group(['middleware' => 'api'],function() {
+
         Route::post('/checkout', [ClientController::class, 'checkout'])->name('checkout')->middleware('api');
 
         Route::prefix('my-investments')->group(function() {
@@ -108,6 +109,11 @@ Route::prefix('client')->name('client')->group(function() {
             Route::post('/quick-sale-notification', [QuickSaleHistoriesController::class, 'sale_notification'])->name('sale_notification');
             Route::post('/reply-sale-notification', [QuickSaleHistoriesController::class, 'reply_sale_notification'])->name('reply_sale_notification');
             Route::post('/{id}', [ClientController::class, 'single_investment'])->name('single_investment');
+        });
+        
+        Route::prefix('market-place')->group(function() {
+            Route::post('/all', [QuickSaleHistoriesController::class, 'market_place'])->name('marketplace');
+
         });
         Route::prefix('chat')->name('chat.')->group(function() {
             Route::get('/', [MessageController::class, 'index']);
