@@ -6,6 +6,7 @@ use App\Http\Controllers\ChangePasswordController;
 use App\Http\Controllers\Client\ClientController;
 use App\Http\Controllers\Client\QuickSaleController;
 use App\Http\Controllers\Client\QuickSaleHistoriesController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\PasswordResetRequestController;
 use App\Http\Controllers\Properties\MainPropertyController;
@@ -58,6 +59,12 @@ Route::group(['middleware' => 'api'], function ($router) {
         Route::delete('/{id}', [PropertyController::class, 'destroy'])->name('destroy');
     });
 
+    Route::prefix('dashboard')->name('dashboard')->group(function() {
+        Route::get('/stats', [DashboardController::class, 'fetch_dashboard_stats']);
+        Route::get('/chart_data', [DashboardController::class, 'fetch_dashboard_chart_data']);
+        Route::get('/table_data', [DashboardController::class, 'fetch_dashboard_table_data']);
+    });
+
     Route::prefix('property_types')->name('property_types.')->group(function() {
         Route::post('/all', [PropertyTypesController::class, 'index'])->name('index');
         Route::get('/{id}', [PropertyTypesController::class, 'show'])->name('show');
@@ -88,7 +95,7 @@ Route::group(['middleware' => 'api'], function ($router) {
         Route::post('/update/{id}', [PropertyGroupsController::class, 'update'])->name('update');
         Route::delete('/{id}', [PropertyGroupsController::class, 'destroy'])->name('destroy');
     });
-    
+
 
 });
 
@@ -117,7 +124,7 @@ Route::prefix('client')->name('client')->group(function() {
 
     });
 
-    
+
 });
 Route::get('analytics/{id}', [ClientController::class, 'get_analytics']);
 
