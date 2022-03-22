@@ -9,8 +9,12 @@ use App\Http\Traits\ApiResponseTrait;
 use App\Models\MainPropertyGroup;
 use App\Models\MainProperty;
 use App\Models\Transaction;
+use App\Models\User;
 use App\Models\userProperty;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 
 class ClientController extends Controller
 {
@@ -21,6 +25,7 @@ class ClientController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
+    public $transaction;
     public function index()
     {
         $Data = new MainPropertyController;
@@ -84,7 +89,7 @@ class ClientController extends Controller
         ->select(
             'users.fname','users.lname','users.email','users.id as user_id','users.phone','users.username',
             DB::raw("COUNT(user_id) as total_slot"))
-            ->groupBy('user_properties.user_id', 'user_properties.main_property_group_id', 'users.fname', 'users.lname', 'users.email', 'users.phone', 'users.username')->get();
+            ->groupBy('user_properties.user_id', 'user_properties.main_property_group_id', 'users.fname', 'users.lname', 'users.email', 'users.phone', 'users.username', 'users.id')->get();
 
         $data->image = json_decode($data->image);
         $data->more_infos = json_decode($data->more_infos);
@@ -100,15 +105,20 @@ class ClientController extends Controller
             'user_id' => 'required',
             'main_property_group_id' => 'required',
         ]);
-        DB::transaction(function() {
-            $insert_trans = new Transaction;
-            $insert_trans->user_id = request()->user_id;
-            $insert_trans->main_property_group_id = request()->main_property_group_id;
-            $insert_trans->amount = request()->amount;
-            $insert_trans->status = 'approved';
-            $insert_trans->save();
 
-            $userProperty = userProperty::create([
+        DB::transaction(function() {
+            $transaction_id = Str::random(11);
+            $insert_trans = Transaction::create([
+                "user_id" => request()->user_id,
+                "transaction_id" => $transaction_id,
+                "main_property_group_id" => request()->main_property_group_id,
+                "amount" => request()->amount,
+                "status" => "pending"
+            ]);
+                $d = Transaction::where('id', $insert_trans->id)->first();
+            $this->transaction = $d;
+
+            userProperty::create([
                 'user_id' => request()->user_id,
                 'main_property_group_id' => request()->main_property_group_id,
                 'transaction_id' => $insert_trans->id
@@ -118,7 +128,13 @@ class ClientController extends Controller
             $incrementColumn->save();
 
         });
-        return response('Checkout successfully', 200);
+
+        $data = [
+            'data' => $this->transaction, 
+            'user_data' => User::where('id', $this->transaction->user_id)->first()
+        ];
+        return response()->json(['message' => 'Checked out successfully', 'data' => $data], 200);
+
         return response('Something went wrong', 500);
     }
 
@@ -182,16 +198,14 @@ class ClientController extends Controller
 
     public function get_analytics($id)
     {
-        $data = userProperty::
-        join('transactions as tr','tr.id', 'user_properties.transaction_id')
-        ->join('main_property_groups as mpg', 'mpg.id', 'user_properties.main_property_group_id')
-        ->select(DB::raw("SUM(tr.amount) as total_paid, 
-            COUNT(user_properties.id) as total_bought,
-            COUNT( DISTINCT  mpg.id) as total_groups
-        ")
-        )
-        ->where('user_properties.user_id', $id)->first();
-        $transactions = Transaction::join('main_property_groups as mpg', 'mpg.id', 'transactions.id')
+        $data = userProperty::join('transactions as tr','tr.id', 'user_properties.transaction_id')
+                ->join('main_property_groups as mpg', 'mpg.id', 'user_properties.main_property_group_id')
+                ->select(DB::raw("SUM(tr.amount) as total_paid, 
+                    COUNT(user_properties.id) as total_bought,
+                    COUNT( DISTINCT  mpg.id) as total_groups
+                "))->where('user_properties.user_id', $id)->first();
+
+        $transactions = Transaction::join('main_property_groups as mpg', 'mpg.id', 'transactions.main_property_group_id')
         ->join('main_properties as mp', 'mp.id', 'mpg.main_property_id')
         ->join('property_types', 'property_types.id', 'mp.property_type_id')
         ->select('transactions.*', 'mp.name as mp_name', 'property_types.name as pt_name')
@@ -200,26 +214,27 @@ class ClientController extends Controller
         return $data;
     }
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, $id)
+    
+    public function callback(Request $request, $transaction_id)
     {
-        //
+        $response = $this->verifyPayment($transaction_id);
+       if($response['requestSuccessful'] == false){
+        Transaction::where('transaction_id', $transaction_id)->update([
+            "status" => "failed"
+        ]);
+        return response()->json(['status' => false], 500);
+       }else{
+        Transaction::where('transaction_id', $transaction_id)->update([
+            "status" => "Approved"
+        ]);
+        return response()->json(['status' => true], 200);
+       }
     }
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy($id)
-    {
-        //
+    
+    private function verifyPayment($ref)
+    {  
+        $response = Http::get("https://sandbox.monnify.com/api/v1/merchant/transactions/query?paymentReference=$ref");
+        return $response->json();
     }
 }

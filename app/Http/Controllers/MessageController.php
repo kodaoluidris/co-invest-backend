@@ -33,9 +33,7 @@ class MessageController extends Controller
           'message' => $request->input('message'),
           'main_property_group_id' => request()->main_property_group_id,
         ]);
-
-        event(new MessageSent($user, $message));
-      
+        MessageSent::dispatch($message);
         return ['status' => 'Message Sent!'];
     }
 
