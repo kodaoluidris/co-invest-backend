@@ -99,6 +99,7 @@ Route::prefix('client')->name('client')->group(function() {
     Route::get('/main-property-group/{id}', [ClientController::class, 'single_group'])->name('single_group');
     Route::group(['middleware' => 'api'],function() {
         Route::post('/checkout', [ClientController::class, 'checkout'])->name('checkout')->middleware('api');
+        Route::get('/callback/{transaction_id}', [ClientController::class, 'callback'])->name('callback')->middleware('api');
 
         Route::prefix('my-investments')->group(function() {
             Route::post('/', [ClientController::class, 'investment_index'])->name('investment_index');
