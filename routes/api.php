@@ -54,7 +54,7 @@ Route::group(['middleware' => 'api'], function ($router) {
         Route::post('/all', [PropertyController::class, 'index'])->name('index')->withoutMiddleware('api');
         Route::get('/{id}', [PropertyController::class, 'show'])->name('show');
         Route::put('/toggle-status/{id}', [PropertyController::class, 'toggle_status'])->name('toggle_status');
-        Route::post('/', [PropertyController::class, 'store'])->name('store');
+        Route::post('/create', [PropertyController::class, 'store'])->name('store');
         Route::post('/update/{id}', [PropertyController::class, 'update'])->name('update');
         Route::delete('/{id}', [PropertyController::class, 'destroy'])->name('destroy');
     });
@@ -69,7 +69,7 @@ Route::group(['middleware' => 'api'], function ($router) {
         Route::post('/all', [PropertyTypesController::class, 'index'])->name('index');
         Route::get('/{id}', [PropertyTypesController::class, 'show'])->name('show');
         Route::put('/toggle-status/{id}', [PropertyTypesController::class, 'toggle_status'])->name('toggle_status');
-        Route::post('/', [PropertyTypesController::class, 'store'])->name('store');
+        Route::post('/create', [PropertyTypesController::class, 'store'])->name('store');
         Route::post('/update/{id}', [PropertyTypesController::class, 'update'])->name('update');
         Route::delete('/{id}', [PropertyTypesController::class, 'destroy'])->name('destroy');
     });
@@ -78,7 +78,7 @@ Route::group(['middleware' => 'api'], function ($router) {
         Route::post('/all', [MainPropertyController::class, 'index'])->name('index');
         Route::get('/{id}', [MainPropertyController::class, 'show'])->name('show');
         Route::put('/toggle-status/{id}', [MainPropertyController::class, 'toggle_status'])->name('toggle_status');
-        Route::post('/', [MainPropertyController::class, 'store'])->name('store');
+        Route::post('/create', [MainPropertyController::class, 'store'])->name('store');
         Route::post('/update/{id}', [MainPropertyController::class, 'update'])->name('update');
         Route::delete('/{id}', [MainPropertyController::class, 'destroy'])->name('destroy');
         Route::post('/add-more', [MainPropertyController::class, 'add_more'])->name('add_more');
@@ -107,7 +107,9 @@ Route::prefix('client')->name('client')->group(function() {
     Route::get('/single-main-property/{id}', [ClientController::class, 'show'])->name('single');
     Route::get('/main-property-group/{id}', [ClientController::class, 'single_group'])->name('single_group');
     Route::group(['middleware' => 'api'],function() {
+
         Route::post('/checkout', [ClientController::class, 'checkout'])->name('checkout')->middleware('api');
+        Route::get('/callback/{transaction_id}', [ClientController::class, 'callback'])->name('callback')->middleware('api');
 
         Route::prefix('my-investments')->group(function() {
             Route::post('/', [ClientController::class, 'investment_index'])->name('investment_index');
@@ -115,6 +117,11 @@ Route::prefix('client')->name('client')->group(function() {
             Route::post('/quick-sale-notification', [QuickSaleHistoriesController::class, 'sale_notification'])->name('sale_notification');
             Route::post('/reply-sale-notification', [QuickSaleHistoriesController::class, 'reply_sale_notification'])->name('reply_sale_notification');
             Route::post('/{id}', [ClientController::class, 'single_investment'])->name('single_investment');
+        });
+        
+        Route::prefix('market-place')->group(function() {
+            Route::post('/all', [QuickSaleHistoriesController::class, 'market_place'])->name('marketplace');
+
         });
         Route::prefix('chat')->name('chat.')->group(function() {
             Route::get('/', [MessageController::class, 'index']);
