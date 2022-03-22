@@ -35,9 +35,8 @@ class AuthController extends Controller
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|confirmed|string|min:8',
         ]);
-   
             if ($validator->fails()) {
-              return response()->json($validator->errors());
+              return response()->json($validator->errors(),405);
             }
             $user = new User;
             $user->fname = $request->fname;
