@@ -64,7 +64,6 @@ class AuthController extends Controller
      */
     public function login()
     {
-        return 1234;
         $credentials = request(['email', 'password']);
 
         if (! $token = auth()->attempt($credentials)) {
@@ -72,27 +71,27 @@ class AuthController extends Controller
         }
 
        
-        $logged = LoggedInUser::where('user_id',$token)
-            ->where(DB::raw('substr(created_at, 1, 10)'), '=' , Carbon::now()->format('Y-m-d'))->count();
+        // $logged = LoggedInUser::where('user_id',$token)
+        //     ->where(DB::raw('substr(created_at, 1, 10)'), '=' , Carbon::now()->format('Y-m-d'))->count();
                
-                if($logged > 0){
+                // if($logged > 0){
     
-                    $logged = LoggedInUser::where('user_id',$token)
-                        ->where(DB::raw('substr(created_at, 1, 10)'), '=' , Carbon::now()->format('Y-m-d'))->first();
+                //     $logged = LoggedInUser::where('user_id',$token)
+                //         ->where(DB::raw('substr(created_at, 1, 10)'), '=' , Carbon::now()->format('Y-m-d'))->first();
                         
-                    $time_arr = json_decode($logged->logged_time, true);
-                    $time_arr[] =  Carbon::now();
+                //     $time_arr = json_decode($logged->logged_time, true);
+                //     $time_arr[] =  Carbon::now();
                     
-                    $logged->update([
-                        'logged_time' => json_encode($time_arr)
-                    ]);
+                //     $logged->update([
+                //         'logged_time' => json_encode($time_arr)
+                //     ]);
     
-                }else{
-                LoggedInUser::create([
-                    'user_id'=>$token,
-                    'logged_time'=>json_encode([Carbon::now()])
-                    ]);
-                }
+                // }else{
+                // LoggedInUser::create([
+                //     'user_id'=>$token,
+                //     'logged_time'=>json_encode([Carbon::now()])
+                //     ]);
+                // }
 
         return $this->respondWithToken($token);
     }

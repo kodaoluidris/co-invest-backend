@@ -118,15 +118,7 @@ class ClientController extends Controller
                 $d = Transaction::where('id', $insert_trans->id)->first();
             $this->transaction = $d;
 
-            userProperty::create([
-                'user_id' => request()->user_id,
-                'main_property_group_id' => request()->main_property_group_id,
-                'transaction_id' => $insert_trans->id
-            ]);
-            $incrementColumn = MainPropertyGroup::where('id', request()->main_property_group_id)->first();
-            $incrementColumn->no_of_people_reg += 1;
-            $incrementColumn->save();
-
+           
         });
 
         $data = [
@@ -153,7 +145,7 @@ class ClientController extends Controller
             'mp.*', 'mp.id as mp_id','mpg.id as mpg_id', 'mpg.group_name','user_properties.*',
             DB::raw("count(user_id) as total_slot")
         )
-        ->groupBy('user_id', 'main_property_group_id')
+        ->groupBy('user_id', 'main_property_group_id', 'mp.id', 'mpg.id', 'user_properties.id')
         ->where('user_id', request()->user_id)->orderBy('user_properties.created_at', 'desc')->get();
         
         foreach($data as $value) {
@@ -188,7 +180,7 @@ class ClientController extends Controller
         ->select(
             'users.fname','users.lname','users.email','users.phone','users.username','users.id as mem_user_id',
             DB::raw("COUNT(user_id) as total_slot"))
-            ->groupBy('user_properties.user_id', 'user_properties.main_property_group_id', 'users.fname', 'users.lname', 'users.email', 'users.phone', 'users.username')
+            ->groupBy('user_properties.user_id', 'user_properties.main_property_group_id', 'users.fname', 'users.lname', 'users.email', 'users.phone', 'users.username', 'users.id')
             ->orderBy('user_properties.created_at', 'desc')->get();
         $data->image = json_decode($data->image);
         return($data);
@@ -219,15 +211,32 @@ class ClientController extends Controller
     {
         $response = $this->verifyPayment($transaction_id);
        if($response['requestSuccessful'] == false){
-        Transaction::where('transaction_id', $transaction_id)->update([
-            "status" => "failed"
-        ]);
-        return response()->json(['status' => false], 500);
+            $insert_trans = Transaction::where('transaction_id', $transaction_id)->update([
+                "status" => "approved"
+            ]);
+            $insert_trans = Transaction::where('transaction_id', $transaction_id)->first();
+            userProperty::create([
+                'user_id' => $insert_trans->user_id,
+                'main_property_group_id' => $insert_trans->main_property_group_id,
+                'transaction_id' => $insert_trans->id
+            ]);
+            $incrementColumn = MainPropertyGroup::where('id', $insert_trans->main_property_group_id)->first();
+            $incrementColumn->no_of_people_reg += 1;
+            $incrementColumn->save();
+
+            return response()->json(['status' => true], 200);
+            return response()->json(['status' => false], 500);
        }else{
-        Transaction::where('transaction_id', $transaction_id)->update([
-            "status" => "Approved"
-        ]);
-        return response()->json(['status' => true], 200);
+            $insert_trans = Transaction::where('transaction_id', $transaction_id)->update([
+                "status" => "approved"
+            ]);
+            $insert_trans = Transaction::where('transaction_id', $transaction_id)->first();
+            userProperty::create([
+                'user_id' => $insert_trans->user_id,
+                'main_property_group_id' => $insert_trans->main_property_group_id,
+                'transaction_id' => $insert_trans->id
+            ]);
+            return response()->json(['status' => true], 200);
        }
     }
 
