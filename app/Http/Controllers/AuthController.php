@@ -48,7 +48,7 @@ class AuthController extends Controller
             $user->user_type_id = 3;
             $user->password = Hash::make($request->password);
             $user->save();
-         
+
             $credentials = request(['email', 'password']);
 
             if (!$token = auth()->attempt($credentials)) {
@@ -110,7 +110,7 @@ class AuthController extends Controller
        return response()->json($user,200);
     }
 
-    public function complete_profile() 
+    public function complete_profile()
     {
 
         $update_user = User::where('id', request()->id)->update([
