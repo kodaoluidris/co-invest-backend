@@ -100,6 +100,7 @@ Route::group(['middleware' => 'api'], function ($router) {
 
     Route::prefix('users')->name('users.')->group(function() {
         Route::get('/fetch', [UserController::class, 'fetch_all_users'])->name('fetch');
+        Route::post('/edit', [UserController::class, 'update_user_details'])->name('edit');
     });
 
 
