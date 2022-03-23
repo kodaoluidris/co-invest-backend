@@ -33,6 +33,8 @@ use Illuminate\Support\Facades\Route;
 Route::post('/reset-password-request', [PasswordResetRequestController::class, 'sendPasswordResetEmail']);
 Route::post('/change-password', [ChangePasswordController::class, 'passwordResetProcess']);
 
+
+
 Route::group(['middleware' => 'api', 'prefix' => 'auth'], function ($router) {
     Route::post('register', [AuthController::class, 'register']);
     Route::post('user_type', [AuthController::class, 'auth_user_type']);
@@ -43,9 +45,7 @@ Route::group(['middleware' => 'api', 'prefix' => 'auth'], function ($router) {
     Route::post('complete-profile', [AuthController::class, 'complete_profile'])->name('complete_profile');
 });
 
-Route::group(['prefix' => 'analytics'], function ($router) {
-   Route::get('/properties', [AnalyticsController::class, 'getPropertyCount']);
-});
+
 
 Route::group(['middleware' => 'api'], function ($router) {
    // Property Route
@@ -126,5 +126,8 @@ Route::prefix('client')->name('client')->group(function() {
 
     
 });
+Route::group(['prefix' => 'analytic'], function ($router) {
+    Route::get('/properties', [AnalyticsController::class, 'getPropertyCount']);
+ });
 Route::get('analytics/{id}', [ClientController::class, 'get_analytics']);
 
