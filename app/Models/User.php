@@ -22,6 +22,8 @@ class User extends Authenticatable  implements JWTSubject
         'password',
     ];
 
+    protected $with = ['userType'];
+
     /**
      * The attributes that should be hidden for serialization.
      *
@@ -67,4 +69,10 @@ class User extends Authenticatable  implements JWTSubject
     {
         return $this->hasMany(Message::class);
     }
+
+    public function userType()
+    {
+        return $this->belongsTo(UserType::class);
+    }
+
 }

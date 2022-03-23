@@ -13,6 +13,7 @@ use App\Http\Controllers\Properties\MainPropertyController;
 use App\Http\Controllers\Properties\PropertyController;
 use App\Http\Controllers\Properties\PropertyGroupsController;
 use App\Http\Controllers\Properties\PropertyTypesController;
+use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -97,6 +98,11 @@ Route::group(['middleware' => 'api'], function ($router) {
     });
 
 
+    Route::prefix('users')->name('users.')->group(function() {
+        Route::get('/fetch', [UserController::class, 'fetch_all_users'])->name('fetch');
+    });
+
+
 });
 
 
@@ -118,7 +124,7 @@ Route::prefix('client')->name('client')->group(function() {
             Route::post('/reply-sale-notification', [QuickSaleHistoriesController::class, 'reply_sale_notification'])->name('reply_sale_notification');
             Route::post('/{id}', [ClientController::class, 'single_investment'])->name('single_investment');
         });
-        
+
         Route::prefix('market-place')->group(function() {
             Route::post('/all', [QuickSaleHistoriesController::class, 'market_place'])->name('marketplace');
 
