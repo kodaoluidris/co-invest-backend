@@ -13,10 +13,21 @@ use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
 {
-    public function fetch_all_users()
+    public function fetch_all_users(Request $request)
     {
-        $users = User::where('user_type_id', '!=', 2)->get();
-        return $users;
+        $users = User::where('user_type_id', '!=', 2);
+        if($request->has('filter')) {
+            if(!is_null($request->input('filter.search'))) {
+                $searchData = $request->input('filter.search');
+                $users->where([['lname', 'LIKE', "%{$searchData}%"], ['user_type_id', '!=', 2]])
+                    ->orWhere([['fname', 'LIKE', "%{$searchData}%"], ['user_type_id', '!=', 2]])
+                    ->orWhere([['mname', 'LIKE', "%{$searchData}%"], ['user_type_id', '!=', 2]])
+                    ->orWhere([['email', 'LIKE', "%{$searchData}%"], ['user_type_id', '!=', 2]])
+                    ->orWhere([['phone', 'LIKE', "%{$searchData}%"], ['user_type_id', '!=', 2]])
+                    ->orWhere([['username', 'LIKE', "%{$searchData}%"], ['user_type_id', '!=', 2]]);
+            }
+        }
+        return $users->get();
     }
 
     public function update_user_details(Request $request)
