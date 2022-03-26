@@ -180,7 +180,7 @@ class ClientController extends Controller
         ->select(
             'users.fname','users.lname','users.email','users.phone','users.username','users.id as mem_user_id',
             DB::raw("COUNT(user_id) as total_slot"))
-            ->groupBy('user_properties.user_id', 'user_properties.main_property_group_id', 'users.fname', 'users.lname', 'users.email', 'users.phone', 'users.username', 'users.id')
+            ->groupBy('user_properties.user_id', 'user_properties.main_property_group_id', 'users.fname', 'users.lname', 'users.email', 'users.phone', 'users.username', 'users.id','user_properties.created_at')
             ->orderBy('user_properties.created_at', 'desc')->get();
         $data->image = json_decode($data->image);
         return($data);
