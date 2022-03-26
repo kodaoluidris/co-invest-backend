@@ -6,12 +6,14 @@ use App\Http\Controllers\ChangePasswordController;
 use App\Http\Controllers\Client\ClientController;
 use App\Http\Controllers\Client\QuickSaleController;
 use App\Http\Controllers\Client\QuickSaleHistoriesController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\PasswordResetRequestController;
 use App\Http\Controllers\Properties\MainPropertyController;
 use App\Http\Controllers\Properties\PropertyController;
 use App\Http\Controllers\Properties\PropertyGroupsController;
 use App\Http\Controllers\Properties\PropertyTypesController;
+use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -33,6 +35,8 @@ use Illuminate\Support\Facades\Route;
 Route::post('/reset-password-request', [PasswordResetRequestController::class, 'sendPasswordResetEmail']);
 Route::post('/change-password', [ChangePasswordController::class, 'passwordResetProcess']);
 
+
+
 Route::group(['middleware' => 'api', 'prefix' => 'auth'], function ($router) {
     Route::post('register', [AuthController::class, 'register']);
     Route::post('user_type', [AuthController::class, 'auth_user_type']);
@@ -43,9 +47,7 @@ Route::group(['middleware' => 'api', 'prefix' => 'auth'], function ($router) {
     Route::post('complete-profile', [AuthController::class, 'complete_profile'])->name('complete_profile');
 });
 
-Route::group(['prefix' => 'analytics'], function ($router) {
-   Route::get('/properties', [AnalyticsController::class, 'getPropertyCount']);
-});
+
 
 Route::group(['middleware' => 'api'], function ($router) {
    // Property Route
@@ -56,6 +58,12 @@ Route::group(['middleware' => 'api'], function ($router) {
         Route::post('/create', [PropertyController::class, 'store'])->name('store');
         Route::post('/update/{id}', [PropertyController::class, 'update'])->name('update');
         Route::delete('/{id}', [PropertyController::class, 'destroy'])->name('destroy');
+    });
+
+    Route::prefix('dashboard')->name('dashboard')->group(function() {
+        Route::get('/stats', [DashboardController::class, 'fetch_dashboard_stats']);
+        Route::get('/chart_data', [DashboardController::class, 'fetch_dashboard_chart_data']);
+        Route::get('/table_data', [DashboardController::class, 'fetch_dashboard_table_data']);
     });
 
     Route::prefix('property_types')->name('property_types.')->group(function() {
@@ -88,7 +96,16 @@ Route::group(['middleware' => 'api'], function ($router) {
         Route::post('/update/{id}', [PropertyGroupsController::class, 'update'])->name('update');
         Route::delete('/{id}', [PropertyGroupsController::class, 'destroy'])->name('destroy');
     });
-    
+
+
+    Route::prefix('users')->name('users.')->group(function() {
+        Route::post('/fetch', [UserController::class, 'fetch_all_users'])->name('fetch');
+        Route::post('/edit', [UserController::class, 'update_user_details'])->name('edit');
+        Route::put('/toggle-status/{id}', [UserController::class, 'toggle_user_status'])->name('toggle-status');
+        Route::delete('/delete/{id}', [UserController::class, 'delete_user_account'])->name('delete');
+        Route::get('/reset-password/{id}', [UserController::class, 'reset_user_password'])->name('reset-password');
+    });
+
 
 });
 
@@ -111,7 +128,7 @@ Route::prefix('client')->name('client')->group(function() {
             Route::post('/reply-sale-notification', [QuickSaleHistoriesController::class, 'reply_sale_notification'])->name('reply_sale_notification');
             Route::post('/{id}', [ClientController::class, 'single_investment'])->name('single_investment');
         });
-        
+
         Route::prefix('market-place')->group(function() {
             Route::post('/all', [QuickSaleHistoriesController::class, 'market_place'])->name('marketplace');
             Route::post('/my-quick-sales', [QuickSaleHistoriesController::class, 'my_quick_sales'])->name('my_quick_sales');
@@ -126,7 +143,10 @@ Route::prefix('client')->name('client')->group(function() {
 
     });
 
-    
+
 });
+Route::group(['prefix' => 'analytic'], function ($router) {
+    Route::get('/properties', [AnalyticsController::class, 'getPropertyCount']);
+ });
 Route::get('analytics/{id}', [ClientController::class, 'get_analytics']);
 
