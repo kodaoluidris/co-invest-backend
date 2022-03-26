@@ -4,8 +4,11 @@ namespace App\Http\Controllers;
 
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Controller;
+use App\Models\LoggedInUser;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rules\Password;
@@ -45,7 +48,7 @@ class AuthController extends Controller
             $user->user_type_id = 3;
             $user->password = Hash::make($request->password);
             $user->save();
-         
+
             $credentials = request(['email', 'password']);
 
             if (!$token = auth()->attempt($credentials)) {
@@ -61,11 +64,36 @@ class AuthController extends Controller
      */
     public function login()
     {
+        // return 1234;
         $credentials = request(['email', 'password']);
 
-        if (! $token = auth()->attempt($credentials)) {
+        if (!$token = auth()->attempt($credentials)) {
             return response()->json(['error' => 'Unauthorized'], 401);
         }
+
+        $user = User::where(['email' => request()->email])->first();
+
+        $logged = LoggedInUser::where('user_id',$token)
+            ->where(DB::raw('substr(created_at, 1, 10)'), '=' , Carbon::now()->format('Y-m-d'))->count();
+
+                if($logged > 0){
+
+                    $logged = LoggedInUser::where('user_id',$user->id)
+                        ->where(DB::raw('substr(created_at, 1, 10)'), '=' , Carbon::now()->format('Y-m-d'))->first();
+
+                    $time_arr = json_decode($logged->logged_time, true);
+                    $time_arr[] =  Carbon::now();
+
+                    $logged->update([
+                        'logged_time' => json_encode($time_arr)
+                    ]);
+
+                }else{
+                LoggedInUser::create([
+                    'user_id'=>$user->id,
+                    'logged_time'=>json_encode([Carbon::now()])
+                    ]);
+                }
 
         return $this->respondWithToken($token);
     }
@@ -83,9 +111,8 @@ class AuthController extends Controller
        return response()->json($user,200);
     }
 
-    public function complete_profile() 
+    public function complete_profile()
     {
-
         $update_user = User::where('id', request()->id)->update([
             'fname' => request()->fname,
             'lname' => request()->lname,
