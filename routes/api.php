@@ -110,7 +110,7 @@ Route::group(['middleware' => 'api'], function ($router) {
 });
 
 
-//Client
+//Client route
 
 Route::prefix('client')->name('client')->group(function() {
     Route::post('/all-main-properties', [ClientController::class, 'index'])->name('all');
