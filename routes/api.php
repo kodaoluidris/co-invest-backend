@@ -110,7 +110,7 @@ Route::group(['middleware' => 'api'], function ($router) {
 });
 
 
-//Client
+//Client route
 
 Route::prefix('client')->name('client')->group(function() {
     Route::post('/all-main-properties', [ClientController::class, 'index'])->name('all');
@@ -131,6 +131,8 @@ Route::prefix('client')->name('client')->group(function() {
 
         Route::prefix('market-place')->group(function() {
             Route::post('/all', [QuickSaleHistoriesController::class, 'market_place'])->name('marketplace');
+            Route::post('/my-quick-sales', [QuickSaleHistoriesController::class, 'my_quick_sales'])->name('my_quick_sales');
+            Route::post('/final-quick-sale', [QuickSaleHistoriesController::class, 'final_quick_sale'])->name('final_quick_sale');
 
         });
         Route::prefix('chat')->name('chat.')->group(function() {
