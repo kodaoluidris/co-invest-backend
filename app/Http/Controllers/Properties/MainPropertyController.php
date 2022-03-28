@@ -170,6 +170,8 @@ class MainPropertyController extends Controller
         $mproperty->groups = request()->groups;
         $mproperty->description = request()->description;
         $more_infos[] = ["name" => "appreciate", "value" => request()->appreciate];
+        $more_infos[] = ["name" => "appreciate_percent", "value" => request()->appreciate_percent];
+        $more_infos[] = ["name" => "location", "value" => request()->location];
         $mproperty->more_infos = json_encode($more_infos);
         if($mproperty->save()) {
             $images = [];
