@@ -67,11 +67,11 @@ class ClientController extends Controller
         }
 
         return $this->successResponse(__('mainproperty.single'), $data);
-        
+
 
     }
 
-    
+
     public function single_group($id)
     {
         $data = MainPropertyGroup::where('main_property_groups.id', $id)
@@ -79,8 +79,8 @@ class ClientController extends Controller
         ->join('property_types as pt', 'mp.property_type_id', 'pt.id')
         ->select('mp.*', 'main_property_groups.*', 'mp.id as mp_id', 'pt.name as p_name')
         ->first();
-        
-        
+
+
         if(!$data)  return $this->failureResponse(__('Not found'),null,404);
         $data = $data->makeHidden(['created_at', 'updated_at', 'filename']);
         if($data->no_of_people == $data->no_of_people_reg) return $this->successResponse(__('Not allowed'),$data,208);
@@ -94,7 +94,7 @@ class ClientController extends Controller
         $data->image = json_decode($data->image);
         $data->more_infos = json_decode($data->more_infos);
         return $this->successResponse(__('mainproperty.single'), $data);
-        
+
 
     }
 
@@ -118,11 +118,11 @@ class ClientController extends Controller
                 $d = Transaction::where('id', $insert_trans->id)->first();
             $this->transaction = $d;
 
-           
+
         });
 
         $data = [
-            'data' => $this->transaction, 
+            'data' => $this->transaction,
             'user_data' => User::where('id', $this->transaction->user_id)->first()
         ];
         return response()->json(['message' => 'Checked out successfully', 'data' => $data], 200);
@@ -147,7 +147,7 @@ class ClientController extends Controller
         )
         ->groupBy('user_id', 'main_property_group_id', 'mp.id', 'mpg.id', 'user_properties.id')
         ->where('user_id', request()->user_id)->orderBy('user_properties.created_at', 'desc')->get();
-        
+
         foreach($data as $value) {
             $value['image'] = json_decode($value['image']);
         }
@@ -156,7 +156,7 @@ class ClientController extends Controller
 
     public function single_investment($id)
     {
-       
+
         request()->validate([
             'user_id' => 'required'
         ]);
@@ -164,13 +164,15 @@ class ClientController extends Controller
         $data = userProperty::
         join('main_property_groups as mpg', 'mpg.id', 'user_properties.main_property_group_id')
         ->join('main_properties as mp', 'mp.id', 'mpg.main_property_id')
+        ->leftJoin('final_sales as fs', 'fs.main_property_group_id', 'mpg.id')
         ->select(
             'mp.*', 'mp.id as mp_id','mpg.id as mpg_id', 'mpg.group_name','mpg.group_price',
             'mpg.no_of_people', 'mpg.no_of_people_reg', 'mpg.url'
-            ,'mpg.groups','user_properties.*'
+            ,'mpg.groups','user_properties.*', 'fs.id as final_sale_id', 'fs.user_id as final_sale_user_id', 'fs.total_accepts',
+            'fs.accepts_user_id', 'fs.status as final_sale_status'
         )
         ->where([
-            'user_id'=> request()->user_id,
+            'user_properties.user_id'=> request()->user_id,
             'user_properties.id' => $id
         ])->orderBy('user_properties.created_at', 'desc')->first();
         if(!$data) return response()->json('Not found', 404);
@@ -183,6 +185,8 @@ class ClientController extends Controller
             ->groupBy('user_properties.user_id', 'user_properties.main_property_group_id', 'users.fname', 'users.lname', 'users.email', 'users.phone', 'users.username', 'users.id','user_properties.created_at')
             ->orderBy('user_properties.created_at', 'desc')->get();
         $data->image = json_decode($data->image);
+        $data->info = json_decode($data->more_infos);
+        $data->accepts_user_id = json_decode($data->accepts_user_id);
         return($data);
     }
 
@@ -192,7 +196,7 @@ class ClientController extends Controller
     {
         $data = userProperty::join('transactions as tr','tr.id', 'user_properties.transaction_id')
                 ->join('main_property_groups as mpg', 'mpg.id', 'user_properties.main_property_group_id')
-                ->select(DB::raw("SUM(tr.amount) as total_paid, 
+                ->select(DB::raw("SUM(tr.amount) as total_paid,
                     COUNT(user_properties.id) as total_bought,
                     COUNT( DISTINCT  mpg.id) as total_groups
                 "))->where('user_properties.user_id', $id)->first();
@@ -206,7 +210,7 @@ class ClientController extends Controller
         return $data;
     }
 
-    
+
     public function callback(Request $request, $transaction_id)
     {
         $response = $this->verifyPayment($transaction_id);
@@ -240,9 +244,9 @@ class ClientController extends Controller
        }
     }
 
-    
+
     private function verifyPayment($ref)
-    {  
+    {
         $response = Http::get("https://sandbox.monnify.com/api/v1/merchant/transactions/query?paymentReference=$ref");
         return $response->json();
     }

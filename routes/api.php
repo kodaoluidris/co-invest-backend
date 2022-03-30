@@ -4,6 +4,7 @@ use App\Http\Controllers\AnalyticsController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ChangePasswordController;
 use App\Http\Controllers\Client\ClientController;
+use App\Http\Controllers\Client\FinalSaleController;
 use App\Http\Controllers\Client\QuickSaleController;
 use App\Http\Controllers\Client\QuickSaleHistoriesController;
 use App\Http\Controllers\DashboardController;
@@ -127,6 +128,8 @@ Route::prefix('client')->name('client')->group(function() {
             Route::post('/quick-sale-notification', [QuickSaleHistoriesController::class, 'sale_notification'])->name('sale_notification');
             Route::post('/reply-sale-notification', [QuickSaleHistoriesController::class, 'reply_sale_notification'])->name('reply_sale_notification');
             Route::post('/{id}', [ClientController::class, 'single_investment'])->name('single_investment');
+            Route::post('/property-sale/initialize', [FinalSaleController::class, 'initialize_property_sale'])->name('property-sale.initialize');
+            Route::post('/property-sale/approve', [FinalSaleController::class, 'approve_property_sale'])->name('property-sale.approve');
         });
 
         Route::prefix('market-place')->group(function() {
