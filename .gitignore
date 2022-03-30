@@ -6,7 +6,9 @@
 # Node artifact files
 node_modules/
 vendor/
+/vendor
 dist/
+composer.lock
 .env
 
 # Compiled Java class files
