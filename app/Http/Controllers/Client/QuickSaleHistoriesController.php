@@ -136,15 +136,7 @@ class QuickSaleHistoriesController extends Controller
             ->groupBy('quick_sale_histories.quick_sale_id', 'quick_sale_histories.user_id')
             ->get();
         }
-          // $histories = QuickSaleHistory::join('quick_sales as qs', 'qs.id', 'quick_sale_histories.quick_sale_id')
-        //             ->join('users', 'users.id', 'quick_sale_histories.user_id')
-        //             ->join('user_properties as up', 'up.id', 'qs.user_property_id')
-        //             ->selectRaw(
-        //                 'up.id as up_id,quick_sale_histories.*, 
-        //                 qs.status, qs.description,qs.amount,users.fname as buyer_fname,
-        //                 users.lname as buyer_lname,users.email as buyer_email' 
-        //             )->where('up.user_id', $user->id)->orderBy('quick_sale_histories.created_at', 'desc')
-        //             ->get();
+        
         return response()->json($quick_sales_transactions,200);
 
     }
