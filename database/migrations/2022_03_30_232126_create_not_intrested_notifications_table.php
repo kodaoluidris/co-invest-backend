@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateQuickSaleHistoriesTable extends Migration
+class CreateNotIntrestedNotificationsTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,12 +13,11 @@ class CreateQuickSaleHistoriesTable extends Migration
      */
     public function up()
     {
-        Schema::create('quick_sale_histories', function (Blueprint $table) {
+        Schema::create('not_intrested_notifications', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained('users');
-            $table->foreignId('quick_sale_id')->constrained('quick_sales')->onDelete('cascade');
-            $table->enum('status_action', ['interested','notInterested']);
-            $table->string('soled_to_me')->nullable();
+            $table->foreignId('quick_sale_id')->constrained('quick_sales');
+            $table->enum('status', ['pending', 'processing', 'approved'])->default('pending');
             $table->timestamps();
         });
     }
@@ -30,6 +29,6 @@ class CreateQuickSaleHistoriesTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('quick_sale_histories');
+        Schema::dropIfExists('not_intrested_notifications');
     }
 }

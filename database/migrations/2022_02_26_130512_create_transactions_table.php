@@ -19,7 +19,7 @@ class CreateTransactionsTable extends Migration
             $table->foreignId('user_id')->constrained('users');
             $table->foreignId('main_property_group_id')->constrained('main_property_groups');
             $table->integer('amount');
-            $table->enum('status', ['pending', 'approved', 'failed'])->default('pending');
+            $table->enum('status', ['pending', 'approved', 'failed', 'soled'])->default('pending');
             $table->json('raw_response')->nullable();
             $table->timestamps();
         });
