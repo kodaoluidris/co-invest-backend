@@ -59,7 +59,7 @@ class ClientController extends Controller
         ->where('main_properties.id', $id)->first()->makeHidden(['created_at', 'updated_at', 'filename']);
         if($data) {
             $data->image = json_decode($data->image); $data->more_infos = json_decode($data->more_infos);
-            $data->all_groups = MainPropertyGroup::where('main_property_id', $id)->get();
+            $data->all_groups = MainPropertyGroup::where('main_property_id', $id)->where('status', 'active')->get();
 
             foreach($data->all_groups as $value) {
                 $value['group_open'] = $value['no_of_people'] != $value['no_of_people_reg'] ? true : false;
@@ -138,20 +138,34 @@ class ClientController extends Controller
             'user_id' => 'required'
         ]);
         //$data2=[];
-        $data = userProperty::
-        join('main_property_groups as mpg', 'mpg.id', 'user_properties.main_property_group_id')
-        ->join('main_properties as mp', 'mp.id', 'mpg.main_property_id')
-        ->select(
-            'mp.*', 'mp.id as mp_id','mpg.id as mpg_id', 'mpg.group_name','user_properties.*',
-            DB::raw("count(user_id) as total_slot")
-        )
-        ->groupBy('user_id', 'main_property_group_id', 'mp.id', 'mpg.id', 'user_properties.id')
-        ->where('user_id', request()->user_id)->orderBy('user_properties.created_at', 'desc')->get();
+        $usr_id = request()->user_id;
+        $data1 = DB::select(DB::raw("
+        SELECT mp.*, mp.id as mp_id, mpg.id as mpg_id, mpg.group_name,
+        user_properties.*, COUNT(user_id) as total_slot
+        FROM user_properties JOIN main_property_groups as mpg 
+        ON mpg.id= user_properties.main_property_group_id
+        JOIN main_properties as mp ON mp.id = mpg.main_property_id
+        WHERE user_id=$usr_id
+        GROUP BY user_id, main_property_group_id
+        ORDER BY user_properties.created_at DESC
 
-        foreach($data as $value) {
-            $value['image'] = json_decode($value['image']);
+    "));
+        // $data = userProperty::
+        // join('main_property_groups as mpg', 'mpg.id', 'user_properties.main_property_group_id')
+        // ->join('main_properties as mp', 'mp.id', 'mpg.main_property_id')
+        // ->select(
+        //     'mp.*', 'mp.id as mp_id','mpg.id as mpg_id', 'mpg.group_name','user_properties.*',
+        //     DB::raw("count(user_id) as total_slot")
+        // )
+        // ->groupBy('mp.id', 'mpg.id', 'user_properties.id')
+        // ->groupBy('user_id', 'main_property_group_id')
+
+        // ->where('user_id', request()->user_id)->orderBy('user_properties.created_at', 'desc')->get();
+
+        foreach($data1 as $value) {
+            $value->image = json_decode($value->image);
         }
-        return($data);
+        return($data1);
     }
 
     public function single_investment($id)
@@ -182,7 +196,7 @@ class ClientController extends Controller
         ->select(
             'users.fname','users.lname','users.email','users.phone','users.username','users.id as mem_user_id',
             DB::raw("COUNT(user_id) as total_slot"))
-            ->groupBy('user_properties.user_id', 'user_properties.main_property_group_id', 'users.fname', 'users.lname', 'users.email', 'users.phone', 'users.username', 'users.id','user_properties.created_at')
+            ->groupBy('user_properties.user_id', 'user_properties.main_property_group_id')
             ->orderBy('user_properties.created_at', 'desc')->get();
         $data->image = json_decode($data->image);
         $data->info = json_decode($data->more_infos);
