@@ -115,7 +115,7 @@ class QuickSaleHistoriesController extends Controller
         ->get();
         
         foreach ($quick_sales_transactions as $quick_sale) {
-            // Check if it has populated record to not interested table, so as to notify user
+            // Check if it has populated record to not interested table, so as to notify user.
             $determineIfRecordExistInNotIntrestedTable = NotIntrestedNotification::where([
                 'user_id' => $user->id,
                 'quick_sale_id' => $quick_sale['id']
@@ -127,6 +127,9 @@ class QuickSaleHistoriesController extends Controller
                 $quick_sale['no_interest'] = false;
 
             }
+            
+            
+           
            $quick_sale->interactors = QuickSaleHistory::join('users', 'users.id', 'quick_sale_histories.user_id')
             ->selectRaw(
                 'quick_sale_histories.*,users.fname as buyer_fname,
