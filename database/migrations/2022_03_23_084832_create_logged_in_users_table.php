@@ -17,6 +17,7 @@ class CreateLoggedInUsersTable extends Migration
             $table->id();
             $table->foreignId('user_id')->references('id')->on('users');
             $table->text('logged_time')->nullable();
+            $table->dateTime('today_date')->nullable();
             $table->timestamps();
         });
     }
