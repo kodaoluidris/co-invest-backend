@@ -64,8 +64,7 @@ class InvestorsQuickSaleController extends Controller
             $quick_sales = QuickSale::where('user_property_id', request()->user_property_id)->first();
             // Use id to delete any transaction on it
             $quick_sale_histories = QuickSaleHistory::where([
-                'quick_sale_id' => $quick_sales->id,
-                'user_id' => request()->user_id
+                'quick_sale_id' => $quick_sales->id
             ])->delete();
             $admin_notification =   NotIntrestedNotification::where([
                 'quick_sale_id' => $quick_sales->id,
