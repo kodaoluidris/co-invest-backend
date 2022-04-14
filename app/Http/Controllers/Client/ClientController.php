@@ -75,6 +75,7 @@ class ClientController extends Controller
     public function single_group($id)
     {
         $data = MainPropertyGroup::where('main_property_groups.id', $id)
+        ->where('main_property_groups.status', 'active')
         ->join('main_properties as mp','mp.id', 'main_property_groups.main_property_id')
         ->join('property_types as pt', 'mp.property_type_id', 'pt.id')
         ->select('mp.*', 'main_property_groups.*', 'mp.id as mp_id', 'pt.name as p_name')
@@ -181,7 +182,7 @@ class ClientController extends Controller
         ->leftJoin('final_sales as fs', 'fs.main_property_group_id', 'mpg.id')
         ->select(
             'mp.*', 'mp.id as mp_id','mpg.id as mpg_id', 'mpg.group_name','mpg.group_price',
-            'mpg.no_of_people', 'mpg.no_of_people_reg', 'mpg.url'
+            'mpg.no_of_people', 'mpg.no_of_people_reg', 'mpg.url','mpg.status as mpg_status'
             ,'mpg.groups','user_properties.*', 'fs.id as final_sale_id', 'fs.user_id as final_sale_user_id', 'fs.total_accepts',
             'fs.accepts_user_id', 'fs.status as final_sale_status'
         )
