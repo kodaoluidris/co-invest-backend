@@ -34,6 +34,7 @@ class QuickSaleHistoriesController extends Controller
         ->join('main_property_groups as mpg', 'mpg.id', 'up.main_property_group_id')
         ->join('users', 'users.id', 'up.user_id')
         ->where('up.user_id', '!=', $user->id)
+        ->where('mpg.status', 'active')
         ->whereIn('mpg.id', array_column($getUserPropertyId, 'id'))
         ->whereIn('up.main_property_group_id', array_column($g_members, 'id'))
         ->whereNotIn('quick_sales.id', 
@@ -83,7 +84,7 @@ class QuickSaleHistoriesController extends Controller
         
         ->select(
             'quick_sales.description','users.fname','quick_sales.amount',
-            'mp.name', 'mpg.group_name','mpg.id as mpg_id',
+            'mp.name', 'mpg.group_name','mpg.id as mpg_id','mpg.status as mpg_status',
             'users.gender', 'users.lname',
             'quick_sales.id','qsh.status_action',
         )->distinct()
@@ -106,7 +107,7 @@ class QuickSaleHistoriesController extends Controller
             ->join('main_property_groups as mpg', 'mpg.id', 'up.main_property_group_id')
             ->join('main_properties as mp', 'mp.id', 'mpg.main_property_id')
             ->selectRaw('
-                up.user_id as owner_id,mp.name as mp_name, mpg.group_name,
+                up.user_id as owner_id,mp.name as mp_name, mpg.group_name,mpg.status as mpg_status,
                 quick_sales.id, quick_sales.status,
                 quick_sales.description, quick_sales.amount
             ')

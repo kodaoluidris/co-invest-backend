@@ -15,6 +15,7 @@ use App\Http\Controllers\Properties\MainPropertyController;
 use App\Http\Controllers\Properties\PropertyController;
 use App\Http\Controllers\Properties\PropertyGroupsController;
 use App\Http\Controllers\Properties\PropertyTypesController;
+use App\Http\Controllers\Properties\UserGroupsController;
 use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -97,6 +98,12 @@ Route::group(['middleware' => 'api'], function ($router) {
         Route::prefix('investors-sale')->name('investorsSale.')->group(function() {
             Route::get('/all', [InvestorsQuickSaleController::class, 'index'])->name('paginated');
             Route::post('/buy', [InvestorsQuickSaleController::class, 'buy'])->name('buy');
+        });
+        Route::prefix('manage-groups')->name('manageGroups..')->group(function() {
+            Route::post('/all', [UserGroupsController::class, 'index'])->name('paginated');
+            Route::post('/remove-user', [UserGroupsController::class, 'remove_user'])->name('remove_user');
+            Route::post('/add-user', [UserGroupsController::class, 'add_user'])->name('add_user');
+            Route::post('/change-status', [UserGroupsController::class, 'change_status'])->name('change_status');
         });
     });
 
