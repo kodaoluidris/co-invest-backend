@@ -94,7 +94,7 @@ Route::group(['middleware' => 'api'], function ($router) {
         Route::post('/property_sale/buy', [FinalSaleController::class, 'admin_buy_property_for_sale'])->name('property_sale.list');
     });
     Route::prefix('admin')->name('admin.')->group(function() {
-        
+
         Route::prefix('investors-sale')->name('investorsSale.')->group(function() {
             Route::get('/all', [InvestorsQuickSaleController::class, 'index'])->name('paginated');
             Route::post('/buy', [InvestorsQuickSaleController::class, 'buy'])->name('buy');
@@ -122,6 +122,7 @@ Route::group(['middleware' => 'api'], function ($router) {
         Route::put('/toggle-status/{id}', [UserController::class, 'toggle_user_status'])->name('toggle-status');
         Route::delete('/delete/{id}', [UserController::class, 'delete_user_account'])->name('delete');
         Route::get('/reset-password/{id}', [UserController::class, 'reset_user_password'])->name('reset-password');
+        Route::post('/investments', [UserController::class, 'user_investments'])->name('investments');
     });
 
 
