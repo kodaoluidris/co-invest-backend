@@ -7,6 +7,7 @@ use App\Http\Controllers\Client\ClientController;
 use App\Http\Controllers\Client\FinalSaleController;
 use App\Http\Controllers\Client\QuickSaleController;
 use App\Http\Controllers\Client\QuickSaleHistoriesController;
+use App\Http\Controllers\ClientSaleForAdmin\InvestorsQuickSaleController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\PasswordResetRequestController;
@@ -51,8 +52,8 @@ Route::group(['middleware' => 'api', 'prefix' => 'auth'], function ($router) {
 
 
 Route::group(['middleware' => 'api'], function ($router) {
-   // Property Route
-   Route::prefix('properties')->name('properties.')->group(function() {
+    // Property Route
+    Route::prefix('properties')->name('properties.')->group(function() {
         Route::post('/all', [PropertyController::class, 'index'])->name('index')->withoutMiddleware('api');
         Route::get('/{id}', [PropertyController::class, 'show'])->name('show');
         Route::put('/toggle-status/{id}', [PropertyController::class, 'toggle_status'])->name('toggle_status');
@@ -87,6 +88,15 @@ Route::group(['middleware' => 'api'], function ($router) {
         Route::prefix('manage_groups')->name('manage_groups.')->group(function() {
             Route::post('/', [MainPropertyController::class, 'allocate_groups'])->name('allocate_groups');
             Route::post('/{id}', [MainPropertyController::class, 'edit_allocate_groups'])->name('edit_allocate_groups');
+        });
+        Route::get('/property_sale/list', [FinalSaleController::class, 'fetch_all_property_for_sale'])->name('property_sale.list');
+        Route::post('/property_sale/buy', [FinalSaleController::class, 'admin_buy_property_for_sale'])->name('property_sale.list');
+    });
+    Route::prefix('admin')->name('admin.')->group(function() {
+        
+        Route::prefix('investors-sale')->name('investorsSale.')->group(function() {
+            Route::get('/all', [InvestorsQuickSaleController::class, 'index'])->name('paginated');
+            Route::post('/buy', [InvestorsQuickSaleController::class, 'buy'])->name('buy');
         });
     });
 
