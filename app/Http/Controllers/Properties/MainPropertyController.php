@@ -157,6 +157,8 @@ class MainPropertyController extends Controller
             'groups' => 'required|integer',
             'description' => 'required|string',
             'appreciate' => 'required',
+            'appreciate_percent' => 'required',
+            'location' => 'required',
         ]);
 
         if($validator->fails()){
