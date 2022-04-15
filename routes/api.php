@@ -140,7 +140,7 @@ Route::prefix('client')->name('client')->group(function() {
         Route::get('/callback/{transaction_id}', [ClientController::class, 'callback'])->name('callback')->middleware('api');
 
         Route::prefix('my-investments')->group(function() {
-            Route::post('/', [ClientController::class, 'investment_index'])->name('investment_index');
+            Route::post('/all', [ClientController::class, 'investment_index'])->name('investment_index');
             Route::post('/quick-sale', [QuickSaleController::class, 'sell_portion'])->name('sell_portion');
             Route::post('/quick-sale-notification', [QuickSaleHistoriesController::class, 'sale_notification'])->name('sale_notification');
             Route::post('/reply-sale-notification', [QuickSaleHistoriesController::class, 'reply_sale_notification'])->name('reply_sale_notification');
