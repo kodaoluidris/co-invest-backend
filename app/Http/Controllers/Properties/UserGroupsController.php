@@ -67,6 +67,9 @@ class UserGroupsController extends Controller
             $transactionStatus = Transaction::where('id', $value->data->id)->update([
                 'status' => 'approved'
             ]);
+
+            $populateTotalReg = MainPropertyGroup::where('id', request()->main_property_group_id)->first();
+            $populateTotalReg->no_of_people_reg += request()->slot;
             
           
         });
