@@ -17,7 +17,7 @@ class AlterEnumAddRemovedToTransactionsTable extends Migration
     public function up()
     {
         Schema::table('transactions', function (Blueprint $table) {
-            DB::statement("ALTER TABLE `transactions` CHANGE `status` `status` ENUM('pending','approved','failed','soled', 'removed') NOT NULL DEFAULT 'pending'");
+            // DB::statement("ALTER TABLE `transactions` CHANGE  `status` ENUM('pending','approved','failed','soled', 'removed') NOT NULL DEFAULT 'pending'");
 
         });
     }
@@ -30,7 +30,7 @@ class AlterEnumAddRemovedToTransactionsTable extends Migration
     public function down()
     {
         Schema::table('transactions', function (Blueprint $table) {
-            DB::statement("ALTER TABLE ".$this->set_schema_table." CHANGE COLUMN status ENUM('pending', 'approved', 'failed','soled', 'removed') NOT NULL DEFAULT 'pending'");
+            // DB::statement("ALTER TABLE ".$this->set_schema_table." CHANGE COLUMN status ENUM('pending', 'approved', 'failed','soled', 'removed') NOT NULL DEFAULT 'pending'");
 
         });
     }

@@ -111,7 +111,7 @@ class AuthController extends Controller
 
     public function complete_profile() 
     {
-
+       
         $update_user = User::where('id', request()->id)->update([
             'fname' => request()->fname,
             'lname' => request()->lname,
